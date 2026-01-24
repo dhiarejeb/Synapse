@@ -1,6 +1,7 @@
 package com.synapse.synapse.user;
 
 
+import com.synapse.synapse.role.Role;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
@@ -80,4 +81,19 @@ public class User implements UserDetails {
     public boolean isCredentialsNonExpired() {
         return !this.credentialsExpired;
     }
+
+    @ManyToMany(
+            cascade = {CascadeType.PERSIST, CascadeType.MERGE},
+            fetch = FetchType.EAGER
+    )
+    @JoinTable(
+            name = "USERS_ROLES",
+            joinColumns = {
+                    @JoinColumn(name = "users_id")
+            },
+            inverseJoinColumns = {
+                    @JoinColumn(name = "roles_id")
+            }
+    )
+    private List<Role> roles;
 }
