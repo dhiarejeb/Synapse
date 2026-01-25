@@ -41,7 +41,7 @@ public class User implements UserDetails {
     private boolean enabled;
     @Column(name = "IS_ACCOUNT_LOCKED")
     private boolean locked;
-    @Column(name = "IS_CRENDETIAL_EXPIRED")
+    @Column(name = "IS_CREDENTIAL_EXPIRED")
     private boolean credentialsExpired;
     @Column(name = "IS_EMAIL_VERIFIED")
     private boolean emailVerified;

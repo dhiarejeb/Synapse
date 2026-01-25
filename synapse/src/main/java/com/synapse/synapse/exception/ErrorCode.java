@@ -29,6 +29,27 @@ public enum ErrorCode {
             HttpStatus.INTERNAL_SERVER_ERROR),
     USERNAME_NOT_FOUND("USERNAME_NOT_FOUND", "Cannot find user with the provided username", NOT_FOUND),
     CATEGORY_ALREADY_EXISTS_FOR_USER("CATEGORY_ALREADY_EXISTS_FOR_USER", "Category already exists for this user", CONFLICT),
+    BOARD_NOT_FOUND(
+            "ERR_BOARD_NOT_FOUND",
+            "Board not found",
+            HttpStatus.NOT_FOUND
+    ),
+
+    BOARD_ACCESS_DENIED(
+            "ERR_BOARD_ACCESS_DENIED",
+            "You are not allowed to access this board",
+            HttpStatus.FORBIDDEN
+    ),
+    NOTE_NOT_FOUND(
+            "ERR_NOTE_NOT_FOUND",
+            "Note not found",
+            HttpStatus.NOT_FOUND
+    ),
+    LINK_NOT_FOUND(
+            "ERR_LINK_NOT_FOUND",
+            "Link not found",
+            HttpStatus.NOT_FOUND
+    )
     ;
 
     private final String code;
