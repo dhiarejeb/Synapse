@@ -18,7 +18,7 @@ public class NoteResponseDto {
     private String color;
     private Double positionX;
     private Double positionY;
-    private boolean pinned;
+    private Boolean pinned;
     private LocalDateTime createdDate;
 }
 

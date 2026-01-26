@@ -33,6 +33,21 @@ public class NoteService {
                 .toList();
     }
 
+    @Transactional(readOnly = true)
+    public NoteResponseDto getNoteById(String boardId, String noteId, User user) {
+
+        // check board ownership
+        Board board = boardRepository.findByIdAndOwnerId(boardId, user.getId())
+                .orElseThrow(() -> new BusinessException(ErrorCode.BOARD_NOT_FOUND));
+
+        // check note belongs to board and user
+        Note note = noteRepository.findByIdAndBoardIdAndAuthorId(noteId, boardId, user.getId())
+                .orElseThrow(() -> new BusinessException(ErrorCode.NOTE_NOT_FOUND));
+
+        return noteMapper.toNoteResponse(note);
+    }
+
+
     public NoteResponseDto create(
             String boardId,
             NoteRequestDto dto,
@@ -66,6 +81,27 @@ public class NoteService {
         noteMapper.updateEntity(note, dto);
         return noteMapper.toNoteResponse(note);
     }
+
+    public NoteResponseDto patch(
+            String boardId,
+            String noteId,
+            NoteRequestDto dto,
+            User user
+    ) {
+        Board board = boardRepository.findByIdAndOwnerId(boardId, user.getId())
+                .orElseThrow(() ->
+                        new BusinessException(ErrorCode.BOARD_NOT_FOUND)
+                );
+
+        Note note = noteRepository.findByIdAndBoardId(noteId, board.getId())
+                .orElseThrow(() ->
+                        new BusinessException(ErrorCode.NOTE_NOT_FOUND)
+                );
+
+        noteMapper.patchEntity(note, dto);
+        return noteMapper.toNoteResponse(note);
+    }
+
 
     public void delete(String boardId, String noteId, User user) {
         Board board = boardRepository.findByIdAndOwnerId(boardId, user.getId())

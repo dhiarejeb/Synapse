@@ -13,7 +13,7 @@ public class LinkMapper {
                 .boardId(link.getBoard().getId())
                 .fromNoteId(link.getFromNote().getId())
                 .toNoteId(link.getToNote().getId())
-                .createdDate(Instant.from(link.getCreatedDate()))
+                .createdDate(link.getCreatedDate())
                 .build();
     }
 }

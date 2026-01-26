@@ -6,6 +6,7 @@ import com.synapse.synapse.user.User;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
@@ -35,6 +36,7 @@ public class BoardController {
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("@boardSecurityService.isBoardOwner(#id)")
     public BoardResponseDto getById(
             @PathVariable String id,
             Authentication authentication
@@ -44,6 +46,7 @@ public class BoardController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("@boardSecurityService.isBoardOwner(#id)")
     public BoardResponseDto update(
             @PathVariable String id,
             @RequestBody @Valid BoardRequestDto dto,
@@ -53,7 +56,20 @@ public class BoardController {
         return boardService.update(id, dto, user);
     }
 
+    @PatchMapping("/{id}")
+    @PreAuthorize("@boardSecurityService.isBoardOwner(#id)")
+    public BoardResponseDto patch(
+            @PathVariable String id,
+            @RequestBody BoardRequestDto dto,
+            Authentication authentication
+    ) {
+        User user = (User) authentication.getPrincipal();
+        return boardService.patch(id, dto, user);
+    }
+
+
     @DeleteMapping("/{id}")
+    @PreAuthorize("@boardSecurityService.isBoardOwner(#id)")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(
             @PathVariable String id,

@@ -5,6 +5,7 @@ import com.synapse.synapse.common.BaseEntity;
 import com.synapse.synapse.note.Note;
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 @Entity
 @Table(name = "links")
@@ -12,7 +13,7 @@ import lombok.*;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
+@SuperBuilder
 public class Link extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)

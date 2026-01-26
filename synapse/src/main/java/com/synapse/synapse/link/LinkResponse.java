@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
@@ -15,6 +16,6 @@ public class LinkResponse {
     private String boardId;
     private String fromNoteId;
     private String toNoteId;
-    private Instant createdDate;
+    private LocalDateTime createdDate;
 }
 

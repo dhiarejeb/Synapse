@@ -23,6 +23,6 @@ public class NoteRequestDto {
 
     private Double positionY;
 
-    private boolean pinned;
+    private Boolean pinned;
 }
 

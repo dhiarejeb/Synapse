@@ -51,6 +51,17 @@ public class BoardService {
         return boardMapper.toDto(board);
     }
 
+    public BoardResponseDto patch(String id, BoardRequestDto dto, User user) {
+        Board board = boardRepository.findByIdAndOwnerId(id, user.getId())
+                .orElseThrow(() ->
+                        new BusinessException(ErrorCode.BOARD_NOT_FOUND)
+                );
+
+        boardMapper.patchEntity(board, dto);
+        return boardMapper.toDto(board);
+    }
+
+
     public void delete(String id, User user) {
         Board board = boardRepository.findByIdAndOwnerId(id, user.getId())
                 .orElseThrow(() ->

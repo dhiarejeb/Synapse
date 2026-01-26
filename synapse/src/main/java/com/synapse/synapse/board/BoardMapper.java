@@ -24,6 +24,22 @@ public class BoardMapper {
         board.setColor(dto.getColor());
     }
 
+    public void patchEntity(Board board, BoardRequestDto dto) {
+
+        if (dto.getName() != null) {
+            board.setName(dto.getName());
+        }
+
+        if (dto.getDescription() != null) {
+            board.setDescription(dto.getDescription());
+        }
+
+        if (dto.getColor() != null) {
+            board.setColor(dto.getColor());
+        }
+    }
+
+
     public BoardResponseDto toDto(Board board) {
         return BoardResponseDto.builder()
                 .id(board.getId())

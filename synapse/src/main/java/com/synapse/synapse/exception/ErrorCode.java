@@ -10,7 +10,7 @@ import static org.springframework.http.HttpStatus.*;
 public enum ErrorCode {
 
     EMAIL_ALREADY_EXISTS("ERR_EMAIL_EXISTS", "Email already exists", CONFLICT),
-    PHONE_ALREADY_EXISTS("ERR_PHONE_EXISTS", "An account with this phone number already exists", CONFLICT),
+
     PASSWORD_MISMATCH("ERR_PASSWORD_MISMATCH", "The password and confirmation do not match", BAD_REQUEST),
     CHANGE_PASSWORD_MISMATCH("ERR_PASSWORD_MISMATCH", "New password and confirmation do not match", BAD_REQUEST),
     ERR_SENDING_ACTIVATION_EMAIL("ERR_SENDING_ACTIVATION_EMAIL",
@@ -28,7 +28,7 @@ public enum ErrorCode {
             "An internal exception occurred, please try again or contact the admin",
             HttpStatus.INTERNAL_SERVER_ERROR),
     USERNAME_NOT_FOUND("USERNAME_NOT_FOUND", "Cannot find user with the provided username", NOT_FOUND),
-    CATEGORY_ALREADY_EXISTS_FOR_USER("CATEGORY_ALREADY_EXISTS_FOR_USER", "Category already exists for this user", CONFLICT),
+
     BOARD_NOT_FOUND(
             "ERR_BOARD_NOT_FOUND",
             "Board not found",

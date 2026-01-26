@@ -10,5 +10,8 @@ public interface NoteRepository extends JpaRepository<Note, String> {
     List<Note> findAllByBoardId(String boardId);
 
     Optional<Note> findByIdAndBoardId(String id, String boardId);
+
+    Optional<Note> findByIdAndBoardIdAndAuthorId(String noteId, String boardId, String authorId);
+
 }
 
