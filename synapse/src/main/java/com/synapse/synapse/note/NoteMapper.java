@@ -11,7 +11,6 @@ public class NoteMapper {
         return Note.builder()
                 .title(dto.getTitle())
                 .content(dto.getContent())
-                .imageUrl(dto.getImageUrl())
                 .color(dto.getColor())
                 .positionX(dto.getPositionX())
                 .positionY(dto.getPositionY())
@@ -24,7 +23,6 @@ public class NoteMapper {
     public void updateEntity(Note note, NoteRequestDto dto) {
         note.setTitle(dto.getTitle());
         note.setContent(dto.getContent());
-        note.setImageUrl(dto.getImageUrl());
         note.setColor(dto.getColor());
         note.setPositionX(dto.getPositionX());
         note.setPositionY(dto.getPositionY());
@@ -34,7 +32,6 @@ public class NoteMapper {
     public void patchEntity(Note note, NoteRequestDto dto) {
         if (dto.getTitle() != null) note.setTitle(dto.getTitle());
         if (dto.getContent() != null) note.setContent(dto.getContent());
-        if (dto.getImageUrl() != null) note.setImageUrl(dto.getImageUrl());
         if (dto.getColor() != null) note.setColor(dto.getColor());
         if (dto.getPositionX() != null) note.setPositionX(dto.getPositionX());
         if (dto.getPositionY() != null) note.setPositionY(dto.getPositionY());

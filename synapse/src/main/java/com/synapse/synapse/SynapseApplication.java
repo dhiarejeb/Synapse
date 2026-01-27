@@ -16,17 +16,17 @@ public class SynapseApplication {
 		SpringApplication.run(SynapseApplication.class, args);
 	}
 
-    @Bean
-    public CommandLineRunner commandLineRunner(final RoleRepository roleRepository) {
-        return args -> {
-            final Optional<Role> userRole = roleRepository.findByName("ROLE_USER");
-          if(userRole.isEmpty()){
-              final Role role = new Role();
-               role.setName("ROLE_USER");
-               role.setCreatedBy("APP");
-                roleRepository.save(role);
-            }
-        };
-    }
+//    @Bean
+//    public CommandLineRunner commandLineRunner(final RoleRepository roleRepository) {
+//        return args -> {
+//            final Optional<Role> userRole = roleRepository.findByName("ROLE_USER");
+//          if(userRole.isEmpty()){
+//              final Role role = new Role();
+//               role.setName("ROLE_USER");
+//               role.setCreatedBy("APP");
+//                roleRepository.save(role);
+//            }
+//        };
+//    }
 
 }

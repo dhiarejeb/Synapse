@@ -15,7 +15,7 @@ public class NoteRequestDto {
 
     private String content;
 
-    private String imageUrl;
+    //private String imageUrl; image upload has different endpoint with s3
 
     private String color;
 

@@ -49,6 +49,22 @@ public enum ErrorCode {
             "ERR_LINK_NOT_FOUND",
             "Link not found",
             HttpStatus.NOT_FOUND
+    ),
+    FILE_UPLOAD_FAILED(
+            "ERR_FILE_UPLOAD_FAILED",
+            "Image upload failed. Please try again.",
+            HttpStatus.INTERNAL_SERVER_ERROR
+    ),
+    FILE_EMPTY(
+            "ERR_FILE_EMPTY",
+            "Uploaded file is empty",
+            HttpStatus.BAD_REQUEST
+    ),
+
+    INVALID_FILE_TYPE(
+            "ERR_INVALID_FILE_TYPE",
+            "Only image files are allowed",
+            HttpStatus.BAD_REQUEST
     )
     ;
 

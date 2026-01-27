@@ -1,12 +1,21 @@
 package com.synapse.synapse.note;
 
+import com.synapse.synapse.exception.BusinessException;
+import com.synapse.synapse.exception.ErrorCode;
 import com.synapse.synapse.user.User;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.media.SchemaProperty;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -48,7 +57,7 @@ public class NoteController {
     }
 
     @PutMapping("/{noteId}")
-    @PreAuthorize("@noteSecurityService.isNoteOwner(#id)")
+    @PreAuthorize("@noteSecurityService.isNoteOwner(#noteId)")
     public NoteResponseDto update(
             @PathVariable String boardId,
             @PathVariable String noteId,
@@ -60,7 +69,7 @@ public class NoteController {
     }
 
     @PatchMapping("/{noteId}")
-    @PreAuthorize("@noteSecurityService.isNoteOwner(#id)")
+    @PreAuthorize("@noteSecurityService.isNoteOwner(#noteId)")
     public NoteResponseDto patch(
             @PathVariable String boardId,
             @PathVariable String noteId,
@@ -74,7 +83,7 @@ public class NoteController {
 
     @DeleteMapping("/{noteId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    @PreAuthorize("@noteSecurityService.isNoteOwner(#id)")
+    @PreAuthorize("@noteSecurityService.isNoteOwner(#noteId)")
     public void delete(
             @PathVariable String boardId,
             @PathVariable String noteId,
@@ -83,5 +92,45 @@ public class NoteController {
         User user = (User) authentication.getPrincipal();
         noteService.delete(boardId, noteId, user);
     }
+
+    @PostMapping(
+            value = "/{noteId}/image",
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE
+    )
+    @PreAuthorize("@noteSecurityService.isNoteOwner(#noteId)")
+    @Operation(summary = "Upload image for a note")
+    @ResponseStatus(HttpStatus.OK)
+    public NoteResponseDto uploadImage(
+            @PathVariable String boardId,
+            @PathVariable String noteId,
+            @Parameter(description = "Image file", required = true)
+            @RequestPart("file") MultipartFile file,
+            Authentication authentication
+    ) {
+        if (file.isEmpty()) {
+            throw new BusinessException(ErrorCode.FILE_EMPTY);
+        }
+
+        if (file.getContentType() == null || !file.getContentType().startsWith("image/")) {
+            throw new BusinessException(ErrorCode.INVALID_FILE_TYPE);
+        }
+        User user = (User) authentication.getPrincipal();
+        return noteService.uploadImage(boardId, noteId, file, user);
+    }
+
+    @DeleteMapping("/{noteId}/image")
+    @PreAuthorize("@noteSecurityService.isNoteOwner(#noteId)")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteImage(
+            @PathVariable String boardId,
+            @PathVariable String noteId,
+            Authentication authentication
+    ) {
+        User user = (User) authentication.getPrincipal();
+        noteService.deleteImage(boardId, noteId, user);
+    }
+
+
+
 }
 
