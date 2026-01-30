@@ -34,6 +34,12 @@ public class JwtFilter extends OncePerRequestFilter {
             @NonNull
             final FilterChain filterChain) throws ServletException, IOException {
 
+//        // Skip OPTIONS preflight
+//        if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
+//            filterChain.doFilter(request, response);
+//            return;
+//        }
+
         if (request.getServletPath().contains("/api/v1/auth")) {
             filterChain.doFilter(request, response);
             return;
@@ -51,10 +57,23 @@ public class JwtFilter extends OncePerRequestFilter {
         jwt = authHeader.substring(7);
         username = this.jwtService.extractUsername(jwt);
 
+//        System.out.println("JwtFilter: path=" + request.getServletPath() + " method=" + request.getMethod());
+//        System.out.println("JwtFilter: authHeader=" + authHeader);
+//        System.out.println("JwtFilter: SecurityContext=" + SecurityContextHolder.getContext().getAuthentication());
+
+
+
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             final UserDetails userDetails = this.userDetailsService.loadUserByUsername(username);
 
             if (this.jwtService.isTokenValid(jwt, userDetails.getUsername())) {
+
+//                // FIX: provide a default role if userDetails.getAuthorities() is empty
+//                var authorities = userDetails.getAuthorities();
+//                if (authorities == null || authorities.isEmpty()) {
+//                    authorities = java.util.List.of(new org.springframework.security.core.authority.SimpleGrantedAuthority("USER_ROLE"));
+//                }
+
                 final UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                         userDetails,
                         null,

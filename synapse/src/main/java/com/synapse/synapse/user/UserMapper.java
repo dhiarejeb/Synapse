@@ -33,10 +33,6 @@ public class UserMapper {
                 .lastName(request.getLastName())
                 .email(request.getEmail())
                 .password(this.passwordEncoder.encode(request.getPassword()))
-                .enabled(true)
-                .locked(false)
-                .credentialsExpired(false)
-                .emailVerified(false)
                 .build();
     }
 

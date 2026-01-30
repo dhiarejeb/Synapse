@@ -65,7 +65,25 @@ public enum ErrorCode {
             "ERR_INVALID_FILE_TYPE",
             "Only image files are allowed",
             HttpStatus.BAD_REQUEST
+    ),
+    INVALID_ACTIVATION_CODE(
+            "ERR_INVALID_ACTIVATION_CODE",
+            "Invalid activation code",
+            HttpStatus.BAD_REQUEST
+    ),
+
+    ACTIVATION_CODE_EXPIRED(
+            "ERR_ACTIVATION_CODE_EXPIRED",
+            "Activation code has expired",
+            HttpStatus.BAD_REQUEST
+    ),
+
+    ACTIVATION_CODE_ALREADY_USED(
+            "ERR_ACTIVATION_CODE_ALREADY_USED",
+            "Activation code has already been used",
+            HttpStatus.BAD_REQUEST
     )
+
     ;
 
     private final String code;

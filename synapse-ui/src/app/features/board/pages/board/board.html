@@ -1,0 +1,30 @@
+<div class="board-container">
+  <div class="controls">
+    <label>
+      Color:
+      <select [(ngModel)]="newNoteColor">
+        <option *ngFor="let c of ['purple', 'yellow', 'green', 'blue', 'pink']" [value]="c">{{c}}</option>
+      </select>
+    </label>
+
+    <button (click)="createNote()">➕ Create Note</button>
+  </div>
+
+  <div class="notes-wrapper">
+    <div
+      class="note"
+      *ngFor="let note of notes"
+      [ngStyle]="{ 'background-color': note.color, left: note.positionX + 'px', top: note.positionY + 'px' }"
+      cdkDrag
+      (cdkDragEnded)="dragEnded($event, note)"
+    >
+      <textarea [(ngModel)]="note.content" (blur)="updateNote(note)" placeholder="Write something..."></textarea>
+
+      <img *ngIf="note.imageUrl" [src]="note.imageUrl" alt="Note image" />
+
+      <input type="file" (change)="uploadNoteImage($event, note.id!)" />
+
+      <button class="delete-btn" (click)="deleteNote(note.id!)">🗑 Delete</button>
+    </div>
+  </div>
+</div>

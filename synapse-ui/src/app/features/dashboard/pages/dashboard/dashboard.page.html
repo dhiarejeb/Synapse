@@ -1,0 +1,82 @@
+<div class="dashboard-container">
+
+  <h1>📋 Boards</h1>
+
+  <!-- =====================
+       CREATE / EDIT FORM
+  ====================== -->
+  <form class="board-form" (ngSubmit)="saveBoard()">
+    <input
+      type="text"
+      placeholder="Board name"
+      [(ngModel)]="form.name"
+      name="name"
+      required
+    />
+
+    <textarea
+      placeholder="Description (optional)"
+      [(ngModel)]="form.description"
+      name="description"
+      rows="2"
+    ></textarea>
+
+    <div class="form-actions">
+      <button type="submit" class="primary">
+        {{ editingBoardId ? 'Update Board' : 'Create Board' }}
+      </button>
+
+      <button
+        type="button"
+        class="secondary"
+        *ngIf="editingBoardId"
+        (click)="cancelEdit()"
+      >
+        Cancel
+      </button>
+    </div>
+  </form>
+
+  <!-- =====================
+       STATES
+  ====================== -->
+  <div class="loading" *ngIf="loading">Loading boards...</div>
+  <div class="error" *ngIf="errorMessage">{{ errorMessage }}</div>
+  <div class="empty" *ngIf="!loading && boards.length === 0">
+    No boards yet. Create your first one 👆
+  </div>
+
+  <!-- =====================
+       BOARDS LIST
+  ====================== -->
+  <div class="boards-grid">
+    <div
+      class="board-card"
+      *ngFor="let board of boards; trackBy: trackById"
+      [class.editing]="editingBoardId === board.id"
+    >
+      <div class="card-header">
+        <h3>{{ board.name }}</h3>
+      </div>
+
+      <p class="description">
+        {{ board.description || 'No description' }}
+      </p>
+
+      <div class="card-actions">
+        <button class="link" (click)="goToBoard(board.id!)">
+          Open
+        </button>
+
+        <button class="edit" (click)="editBoard(board)">
+          Edit
+        </button>
+
+        <button class="delete" (click)="deleteBoard(board.id!)">
+          Delete
+        </button>
+      </div>
+    </div>
+  </div>
+
+</div>

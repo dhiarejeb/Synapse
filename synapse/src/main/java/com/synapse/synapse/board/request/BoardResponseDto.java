@@ -14,8 +14,8 @@ public class BoardResponseDto {
     private String id;
     private String name;
     private String description;
-    private String color;
-    private boolean archived;
+    //private String color;
+    //private boolean archived;
     private LocalDateTime createdDate;
 }
 

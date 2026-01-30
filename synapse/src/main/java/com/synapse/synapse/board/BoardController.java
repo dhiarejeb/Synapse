@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/boards")
+@RequestMapping("/api/v1/boards")
 @RequiredArgsConstructor
 public class BoardController {
 

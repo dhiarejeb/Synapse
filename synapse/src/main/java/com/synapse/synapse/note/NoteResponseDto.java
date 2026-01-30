@@ -12,13 +12,13 @@ import java.time.LocalDateTime;
 public class NoteResponseDto {
 
     private String id;
-    private String title;
+    //private String title;
     private String content;
     private String imageUrl;
     private String color;
     private Double positionX;
     private Double positionY;
-    private Boolean pinned;
+    //private Boolean pinned;
     private LocalDateTime createdDate;
 }
 

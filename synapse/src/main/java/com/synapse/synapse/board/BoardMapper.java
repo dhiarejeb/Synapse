@@ -12,16 +12,16 @@ public class BoardMapper {
         return Board.builder()
                 .name(dto.getName())
                 .description(dto.getDescription())
-                .color(dto.getColor())
+                //.color(dto.getColor())
                 .owner(owner)
-                .archived(false)
+                //.archived(false)
                 .build();
     }
 
     public void updateEntity(Board board, BoardRequestDto dto) {
         board.setName(dto.getName());
         board.setDescription(dto.getDescription());
-        board.setColor(dto.getColor());
+        //board.setColor(dto.getColor());
     }
 
     public void patchEntity(Board board, BoardRequestDto dto) {
@@ -34,9 +34,9 @@ public class BoardMapper {
             board.setDescription(dto.getDescription());
         }
 
-        if (dto.getColor() != null) {
-            board.setColor(dto.getColor());
-        }
+//        if (dto.getColor() != null) {
+//            board.setColor(dto.getColor());
+//        }
     }
 
 
@@ -45,8 +45,8 @@ public class BoardMapper {
                 .id(board.getId())
                 .name(board.getName())
                 .description(board.getDescription())
-                .color(board.getColor())
-                .archived(board.isArchived())
+                //.color(board.getColor())
+                //.archived(board.isArchived())
                 .createdDate(board.getCreatedDate())
                 .build();
     }

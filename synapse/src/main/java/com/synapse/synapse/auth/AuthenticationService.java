@@ -1,9 +1,11 @@
 package com.synapse.synapse.auth;
 
+import com.synapse.synapse.auth.request.ActivationRequest;
 import com.synapse.synapse.auth.request.AuthenticationRequest;
 import com.synapse.synapse.auth.request.RefreshRequest;
 import com.synapse.synapse.auth.request.RegistrationRequest;
 import com.synapse.synapse.auth.response.AuthenticationResponse;
+import jakarta.validation.Valid;
 
 public interface AuthenticationService {
 
@@ -12,4 +14,6 @@ public interface AuthenticationService {
     void register(RegistrationRequest request);
 
     AuthenticationResponse refreshToken(RefreshRequest req);
+
+    void activateAccount(@Valid ActivationRequest request);
 }

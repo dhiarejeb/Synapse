@@ -10,8 +10,8 @@ import lombok.*;
 @Builder
 public class NoteRequestDto {
 
-    @NotBlank
-    private String title;
+
+   // private String title;
 
     private String content;
 
@@ -23,6 +23,6 @@ public class NoteRequestDto {
 
     private Double positionY;
 
-    private Boolean pinned;
+    //private Boolean pinned;
 }
 

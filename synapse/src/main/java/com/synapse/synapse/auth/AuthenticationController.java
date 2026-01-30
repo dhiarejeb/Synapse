@@ -1,5 +1,6 @@
 package com.synapse.synapse.auth;
 
+import com.synapse.synapse.auth.request.ActivationRequest;
 import com.synapse.synapse.auth.request.AuthenticationRequest;
 import com.synapse.synapse.auth.request.RefreshRequest;
 import com.synapse.synapse.auth.request.RegistrationRequest;
@@ -45,5 +46,13 @@ public class AuthenticationController {
             @RequestBody
             final RefreshRequest req) {
         return ResponseEntity.ok(this.service.refreshToken(req));
+    }
+
+    @PostMapping("/activate")
+    public ResponseEntity<Void> activateAccount(
+            @Valid @RequestBody ActivationRequest request
+    ) {
+        service.activateAccount(request);
+        return ResponseEntity.ok().build();
     }
 }

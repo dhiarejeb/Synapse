@@ -62,13 +62,15 @@ public class BoardService {
     }
 
 
+    @Transactional
     public void delete(String id, User user) {
+
         Board board = boardRepository.findByIdAndOwnerId(id, user.getId())
                 .orElseThrow(() ->
                         new BusinessException(ErrorCode.BOARD_NOT_FOUND)
                 );
 
-        board.setArchived(true); // soft delete
+        boardRepository.delete(board);
     }
 }
 

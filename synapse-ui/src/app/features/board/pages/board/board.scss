@@ -1,0 +1,60 @@
+.board-container {
+  width: 100%;
+  height: 100vh;
+  background-color: #1a1a1a; // dark detective board
+  position: relative;
+  padding: 1rem;
+  color: white;
+
+  .controls {
+    margin-bottom: 1rem;
+    select, button {
+      margin-right: 0.5rem;
+      padding: 0.3rem 0.6rem;
+      border-radius: 4px;
+      border: none;
+    }
+  }
+
+  .notes-wrapper {
+    position: relative;
+    width: 100%;
+    height: calc(100% - 50px);
+  }
+
+  .note {
+    position: absolute;
+    width: 180px;
+    min-height: 120px;
+    padding: 0.5rem;
+    border-radius: 6px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+    color: black;
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    textarea {
+      width: 100%;
+      height: 60px;
+      resize: none;
+      border: none;
+      background: transparent;
+      outline: none;
+    }
+    img {
+      width: 100%;
+      height: auto;
+      border-radius: 4px;
+      margin-bottom: 0.3rem;
+    }
+    .delete-btn {
+      align-self: flex-end;
+      background: red;
+      color: white;
+      border: none;
+      border-radius: 3px;
+      cursor: pointer;
+      padding: 0.2rem 0.5rem;
+    }
+  }
+}

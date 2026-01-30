@@ -15,6 +15,6 @@ public class BoardRequestDto {
 
     private String description;
 
-    private String color;
+    //private String color;
 }
 

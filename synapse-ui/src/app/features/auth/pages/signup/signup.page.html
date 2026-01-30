@@ -1,0 +1,60 @@
+<div class="container mt-5" style="max-width: 400px;">
+  <h2 class="mb-4 text-center">Create Account</h2>
+
+  <form [formGroup]="signupForm" (ngSubmit)="submit()">
+
+    <!-- First Name -->
+    <div class="mb-3">
+      <label class="form-label">First Name</label>
+      <input type="text" class="form-control" formControlName="firstName" placeholder="John"/>
+      <small class="text-danger" *ngIf="signupForm.controls['firstName'].touched && signupForm.controls['firstName'].invalid">
+        First name is required
+      </small>
+    </div>
+
+    <!-- Last Name -->
+    <div class="mb-3">
+      <label class="form-label">Last Name</label>
+      <input type="text" class="form-control" formControlName="lastName" placeholder="Doe"/>
+      <small class="text-danger" *ngIf="signupForm.controls['lastName'].touched && signupForm.controls['lastName'].invalid">
+        Last name is required
+      </small>
+    </div>
+
+    <!-- Email -->
+    <div class="mb-3">
+      <label class="form-label">Email</label>
+      <input type="email" class="form-control" formControlName="email" placeholder="you@example.com"/>
+      <small class="text-danger" *ngIf="signupForm.controls['email'].touched && signupForm.controls['email'].invalid">
+        Valid email is required
+      </small>
+    </div>
+
+    <!-- Password -->
+    <div class="mb-3">
+      <label class="form-label">Password</label>
+      <input type="password" class="form-control" formControlName="password"/>
+      <small class="text-danger" *ngIf="signupForm.controls['password'].touched && signupForm.controls['password'].invalid">
+        Minimum 6 characters
+      </small>
+    </div>
+
+    <!-- Confirm Password -->
+    <div class="mb-3">
+      <label class="form-label">Confirm Password</label>
+      <input type="password" class="form-control" formControlName="confirmPassword"/>
+      <small class="text-danger" *ngIf="signupForm.controls['confirmPassword'].touched && signupForm.hasError('passwordsMismatch')">
+        Passwords do not match
+      </small>
+    </div>
+
+    <button type="submit" class="btn btn-dark w-100" [disabled]="signupForm.invalid">
+      Sign Up
+    </button>
+
+  </form>
+
+  <div class="text-center mt-3">
+    <a routerLink="/login">Already have an account? Login</a>
+  </div>
+</div>

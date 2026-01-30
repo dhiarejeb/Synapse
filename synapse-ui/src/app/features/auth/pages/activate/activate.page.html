@@ -1,0 +1,33 @@
+<div class="container mt-5" style="max-width: 400px;">
+  <h2 class="mb-4 text-center">Activate Account</h2>
+
+  <form [formGroup]="activateForm" (ngSubmit)="submit()">
+
+    <!-- Email -->
+    <div class="mb-3">
+      <label class="form-label">Email</label>
+      <input type="email" class="form-control" formControlName="email" placeholder="you@example.com"/>
+      <small class="text-danger" *ngIf="activateForm.controls['email'].touched && activateForm.controls['email'].invalid">
+        Valid email is required
+      </small>
+    </div>
+
+    <!-- Activation Code -->
+    <div class="mb-3">
+      <label class="form-label">Activation Code</label>
+      <input type="text" class="form-control" formControlName="code"/>
+      <small class="text-danger" *ngIf="activateForm.controls['code'].touched && activateForm.controls['code'].invalid">
+        Activation code is required
+      </small>
+    </div>
+
+    <button type="submit" class="btn btn-dark w-100" [disabled]="activateForm.invalid">
+      Activate
+    </button>
+
+  </form>
+
+  <div class="text-center mt-3">
+    <a routerLink="/login">Back to Login</a>
+  </div>
+</div>
