@@ -1,112 +1,808 @@
+// =============================================
+// DETECTIVE BOARD - ENHANCED STYLES
+// =============================================
+
+// Import Google Font for handwriting
+@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400;500;600;700&family=Special+Elite&display=swap');
+
+// Color Variables
+$cork-light: #c9a66b;
+$cork-dark: #a67c52;
+$cork-texture: #b8956e;
+$wood-frame: #4a3728;
+$wood-frame-light: #5d4632;
+$pin-red: #c41e3a;
+$pin-highlight: #ffb6c1;
+$string-red: #8b0000;
+$paper-white: #f8f6f1;
+$paper-cream: #f5f0e1;
+$sticky-yellow: #fff59d;
+$sticky-pink: #f8bbd9;
+$sticky-blue: #b3e5fc;
+$sticky-green: #c8e6c9;
+
+// =============================================
+// MAIN CONTAINER
+// =============================================
+
 .board-container {
   width: 100%;
   height: 100vh;
-  background-color: #1a1a1a; // dark detective board
-  position: relative;
-  padding: 1rem;
-  color: white;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  box-sizing: border-box;
   overflow: hidden;
+}
 
-  .controls {
-    margin-bottom: 1rem;
-    select,
-    button {
-      margin-right: 0.5rem;
-      padding: 0.3rem 0.6rem;
-      border-radius: 4px;
-      border: none;
-      cursor: pointer;
+// =============================================
+// BOARD FRAME (Wooden)
+// =============================================
+
+.board-frame {
+  width: 100%;
+  height: 100%;
+  max-width: 1600px;
+  max-height: 900px;
+  background: linear-gradient(180deg, $wood-frame-light 0%, $wood-frame 50%, darken($wood-frame, 5%) 100%);
+  border-radius: 8px;
+  padding: 16px;
+  box-shadow:
+    0 20px 60px rgba(0, 0, 0, 0.5),
+    inset 0 2px 4px rgba(255, 255, 255, 0.1),
+    inset 0 -2px 4px rgba(0, 0, 0, 0.2);
+  position: relative;
+
+  // Wood grain texture
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+        90deg,
+        transparent,
+        transparent 2px,
+        rgba(0, 0, 0, 0.03) 2px,
+        rgba(0, 0, 0, 0.03) 4px
+    );
+    border-radius: 8px;
+    pointer-events: none;
+  }
+}
+
+// =============================================
+// BOARD SURFACE (Cork)
+// =============================================
+
+.board-surface {
+  width: 100%;
+  height: 100%;
+  background:
+    radial-gradient(ellipse at 30% 20%, rgba(255, 255, 255, 0.05) 0%, transparent 50%),
+    radial-gradient(circle at 70% 80%, rgba(0, 0, 0, 0.1) 0%, transparent 40%),
+    linear-gradient(135deg, $cork-light 0%, $cork-texture 50%, $cork-dark 100%);
+  border-radius: 4px;
+  position: relative;
+  overflow: hidden;
+  cursor: default;
+
+  &.panning {
+    cursor: grabbing;
+  }
+
+  // Cork texture overlay
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+    opacity: 0.15;
+    pointer-events: none;
+  }
+
+  // Vignette effect
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at center, transparent 40%, rgba(0, 0, 0, 0.3) 100%);
+    pointer-events: none;
+  }
+}
+
+// =============================================
+// TOOLBAR
+// =============================================
+
+.toolbar {
+  position: absolute;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+}
+
+.toolbar-inner {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: rgba(30, 30, 40, 0.95);
+  backdrop-filter: blur(10px);
+  padding: 12px 20px;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.toolbar-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.toolbar-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.7);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.toolbar-select {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+  padding: 6px 12px;
+  color: white;
+  font-size: 13px;
+  cursor: pointer;
+  outline: none;
+
+  &:focus {
+    border-color: $pin-red;
+  }
+
+  option {
+    background: #1a1a2e;
+    color: white;
+  }
+}
+
+.color-picker {
+  display: flex;
+  gap: 6px;
+}
+
+.color-btn {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &.sticky-yellow { background: $sticky-yellow; }
+  &.sticky-pink { background: $sticky-pink; }
+  &.sticky-blue { background: $sticky-blue; }
+  &.sticky-green { background: $sticky-green; }
+
+  &:hover {
+    transform: scale(1.15);
+  }
+
+  &.active {
+    border-color: white;
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.3);
+  }
+}
+
+.toolbar-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: none;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &.add-btn {
+    background: $pin-red;
+    color: white;
+
+    &:hover {
+      background: lighten($pin-red, 5%);
+      transform: translateY(-1px);
+    }
+
+    .btn-icon {
+      font-size: 16px;
       font-weight: bold;
     }
   }
 
-  .notes-wrapper {
-    position: relative;
-    width: 100%;
-    height: calc(100% - 50px);
-    z-index: 1;
+  &.link-btn {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.2);
 
-    /* SVG overlay for links */
-    .links-svg {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      pointer-events: none;
-      z-index: 0;
-
-      .link-line {
-        pointer-events: auto; // allow clicks on line
-        cursor: pointer;
-        stroke: red;
-        stroke-width: 2;
-        opacity: 0.7;
-        transition: opacity 0.2s;
-
-        &:hover {
-          opacity: 1;
-        }
-      }
-
-      marker {
-        fill: red;
-      }
+    &:hover {
+      background: rgba(255, 255, 255, 0.15);
     }
 
-    /* Notes */
-    .note {
-      position: absolute;
-      width: 180px;
-      min-height: 120px;
-      padding: 0.5rem;
-      border-radius: 6px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
-      color: black;
-      display: flex;
-      flex-direction: column;
-      gap: 0.3rem;
-      cursor: grab;
-      z-index: 2; // ensure notes are above SVG links
-      background-color: #fff;
-
-      &.selected-for-link {
-        outline: 2px dashed red;
-      }
-
-      textarea {
-        width: 100%;
-        height: 60px;
-        resize: none;
-        border: none;
-        background: transparent;
-        outline: none;
-        font-size: 0.9rem;
-      }
-
-      img {
-        width: 100%;
-        height: auto;
-        border-radius: 4px;
-        margin-bottom: 0.3rem;
-      }
-
-      .delete-btn {
-        align-self: flex-end;
-        background: red;
-        color: white;
-        border: none;
-        border-radius: 3px;
-        cursor: pointer;
-        padding: 0.2rem 0.5rem;
-      }
-
-      .link-indicator {
-        margin-top: 4px;
-        font-size: 0.8rem;
-        color: red;
-        font-weight: bold;
-      }
+    &.active {
+      background: $string-red;
+      border-color: $string-red;
     }
   }
+}
+
+.toolbar-divider {
+  width: 1px;
+  height: 24px;
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.toolbar-hint {
+  font-size: 12px;
+  color: $pin-red;
+  font-style: italic;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+// =============================================
+// NOTES WRAPPER
+// =============================================
+
+.notes-wrapper {
+  position: absolute;
+  inset: 0;
+  transition: transform 0.05s linear;
+}
+
+// =============================================
+// STRING CONNECTIONS (SVG)
+// =============================================
+
+.links-svg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  z-index: 5;
+}
+
+.link-group {
+  .link-string {
+    pointer-events: auto;
+    cursor: pointer;
+    stroke: $string-red;
+    stroke-width: 2;
+    stroke-linecap: round;
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3));
+    transition: stroke-width 0.2s ease;
+
+    &:hover {
+      stroke-width: 4;
+      stroke: lighten($string-red, 10%);
+    }
+  }
+
+  .pin-head {
+    filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.4));
+  }
+
+  .pin-highlight {
+    opacity: 0.8;
+  }
+}
+
+// =============================================
+// BASE CARD STYLES
+// =============================================
+
+.card {
+  position: absolute;
+  cursor: grab;
+  transition: box-shadow 0.2s ease, transform 0.1s ease;
+  user-select: none;
+
+  &:active {
+    cursor: grabbing;
+  }
+
+  &.selected {
+    z-index: 100 !important;
+
+    &::after {
+      content: '';
+      position: absolute;
+      inset: -4px;
+      border: 2px solid $pin-red;
+      border-radius: inherit;
+      pointer-events: none;
+      animation: selection-pulse 1.5s ease-in-out infinite;
+    }
+  }
+
+  &.link-mode {
+    cursor: crosshair;
+  }
+
+  &.link-source {
+    &::after {
+      content: '';
+      position: absolute;
+      inset: -4px;
+      border: 2px dashed $pin-red;
+      border-radius: inherit;
+      pointer-events: none;
+      animation: dash-animation 0.5s linear infinite;
+    }
+  }
+}
+
+@keyframes selection-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+@keyframes dash-animation {
+  to { stroke-dashoffset: -10; }
+}
+
+// =============================================
+// PUSH PIN
+// =============================================
+
+.push-pin {
+  position: absolute;
+  top: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+
+  .pin-head {
+    width: 16px;
+    height: 16px;
+    background: radial-gradient(circle at 30% 30%, lighten($pin-red, 20%), $pin-red 50%, darken($pin-red, 15%));
+    border-radius: 50%;
+    box-shadow:
+      0 2px 4px rgba(0, 0, 0, 0.3),
+      inset 0 -2px 4px rgba(0, 0, 0, 0.2),
+      inset 0 2px 4px rgba(255, 255, 255, 0.3);
+    position: relative;
+
+    &::after {
+      content: '';
+      position: absolute;
+      top: 3px;
+      left: 4px;
+      width: 4px;
+      height: 4px;
+      background: rgba(255, 255, 255, 0.6);
+      border-radius: 50%;
+    }
+  }
+
+  .pin-point {
+    width: 4px;
+    height: 8px;
+    background: linear-gradient(to bottom, #888, #666);
+    margin: 0 auto;
+    border-radius: 0 0 2px 2px;
+  }
+}
+
+// =============================================
+// STICKY NOTE
+// =============================================
+
+.sticky-note {
+  min-width: 180px;
+  max-width: 250px;
+  min-height: 100px;
+  padding: 24px 16px 16px;
+  border-radius: 2px;
+  box-shadow:
+    2px 2px 8px rgba(0, 0, 0, 0.2),
+    0 0 1px rgba(0, 0, 0, 0.1);
+
+  &.sticky-yellow {
+    background: linear-gradient(135deg, $sticky-yellow 0%, darken($sticky-yellow, 5%) 100%);
+  }
+  &.sticky-pink {
+    background: linear-gradient(135deg, $sticky-pink 0%, darken($sticky-pink, 5%) 100%);
+  }
+  &.sticky-blue {
+    background: linear-gradient(135deg, $sticky-blue 0%, darken($sticky-blue, 5%) 100%);
+  }
+  &.sticky-green {
+    background: linear-gradient(135deg, $sticky-green 0%, darken($sticky-green, 5%) 100%);
+  }
+
+  // Folded corner effect
+  &::before {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 20px;
+    height: 20px;
+    background: linear-gradient(135deg, transparent 50%, rgba(0, 0, 0, 0.1) 50%);
+  }
+
+  .card-content {
+    font-family: 'Caveat', cursive;
+  }
+
+  .note-textarea {
+    width: 100%;
+    min-height: 60px;
+    border: none;
+    background: transparent;
+    font-family: 'Caveat', cursive;
+    font-size: 20px;
+    line-height: 1.4;
+    color: #333;
+    resize: vertical;
+    outline: none;
+
+    &::placeholder {
+      color: rgba(0, 0, 0, 0.4);
+    }
+  }
+
+  .note-text {
+    font-family: 'Caveat', cursive;
+    font-size: 20px;
+    line-height: 1.4;
+    color: #333;
+    margin: 0;
+    white-space: pre-wrap;
+    word-break: break-word;
+    min-height: 40px;
+    cursor: text;
+  }
+
+  .note-image {
+    width: 100%;
+    max-height: 150px;
+    object-fit: cover;
+    border-radius: 4px;
+    margin-top: 12px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+}
+
+// =============================================
+// PHOTO CARD (Polaroid)
+// =============================================
+
+.photo-card {
+  width: 180px;
+  background: $paper-white;
+  padding: 12px 12px 8px;
+  border-radius: 2px;
+  box-shadow:
+    3px 3px 10px rgba(0, 0, 0, 0.25),
+    0 0 1px rgba(0, 0, 0, 0.1);
+
+  .photo-frame {
+    width: 100%;
+    aspect-ratio: 1;
+    background: #ddd;
+    margin-bottom: 8px;
+    overflow: hidden;
+  }
+
+  .photo-area {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    color: #999;
+    cursor: pointer;
+    transition: background 0.2s ease;
+
+    &:hover {
+      background: #eee;
+    }
+
+    span {
+      font-size: 11px;
+    }
+  }
+
+  .photo-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .photo-caption {
+    text-align: center;
+    min-height: 32px;
+  }
+
+  .caption-textarea {
+    width: 100%;
+    border: none;
+    background: transparent;
+    font-family: 'Caveat', cursive;
+    font-size: 16px;
+    text-align: center;
+    color: #333;
+    resize: none;
+    outline: none;
+
+    &::placeholder {
+      color: rgba(0, 0, 0, 0.4);
+    }
+  }
+
+  .caption-text {
+    font-family: 'Caveat', cursive;
+    font-size: 16px;
+    color: #555;
+    margin: 0;
+    cursor: text;
+  }
+}
+
+// =============================================
+// DOCUMENT CARD
+// =============================================
+
+.document-card {
+  width: 200px;
+  min-height: 150px;
+  background: $paper-white;
+  border-radius: 2px;
+  box-shadow:
+    2px 2px 8px rgba(0, 0, 0, 0.2),
+    0 0 1px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+
+  .document-content {
+    position: relative;
+    padding: 24px 16px 16px 40px;
+    min-height: 120px;
+  }
+
+  // Lined paper effect
+  .document-lines {
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+        transparent,
+        transparent 23px,
+        #c9e1f5 23px,
+        #c9e1f5 24px
+    );
+    pointer-events: none;
+  }
+
+  // Red margin line
+  .document-margin {
+    position: absolute;
+    left: 32px;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    background: #f5a9a9;
+    pointer-events: none;
+  }
+
+  .document-textarea {
+    width: 100%;
+    min-height: 100px;
+    border: none;
+    background: transparent;
+    font-family: 'Special Elite', 'Courier New', monospace;
+    font-size: 13px;
+    line-height: 24px;
+    color: #333;
+    resize: vertical;
+    outline: none;
+    position: relative;
+    z-index: 1;
+
+    &::placeholder {
+      color: rgba(0, 0, 0, 0.3);
+    }
+  }
+
+  .document-text {
+    font-family: 'Special Elite', 'Courier New', monospace;
+    font-size: 13px;
+    line-height: 24px;
+    color: #333;
+    margin: 0;
+    white-space: pre-wrap;
+    word-break: break-word;
+    position: relative;
+    z-index: 1;
+    cursor: text;
+  }
+}
+
+// =============================================
+// CLIPPING CARD (Newspaper)
+// =============================================
+
+.clipping-card {
+  width: 200px;
+  background: $paper-cream;
+  border-radius: 2px;
+  box-shadow:
+    2px 2px 8px rgba(0, 0, 0, 0.2),
+    0 0 1px rgba(0, 0, 0, 0.1);
+
+  // Torn paper effect - top edge
+  clip-path: polygon(
+      0% 2%, 3% 0%, 6% 3%, 9% 1%, 12% 2%, 15% 0%, 18% 2%, 21% 1%, 24% 3%, 27% 0%,
+      30% 2%, 33% 1%, 36% 3%, 39% 0%, 42% 2%, 45% 1%, 48% 2%, 51% 0%, 54% 3%,
+      57% 1%, 60% 2%, 63% 0%, 66% 2%, 69% 1%, 72% 3%, 75% 0%, 78% 2%, 81% 1%,
+      84% 2%, 87% 0%, 90% 3%, 93% 1%, 96% 2%, 100% 0%,
+      100% 100%, 0% 100%
+  );
+
+  .clipping-content {
+    padding: 24px 16px 16px;
+  }
+
+  .clipping-header {
+    font-family: 'Times New Roman', serif;
+    font-size: 12px;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: #666;
+    border-bottom: 2px solid #333;
+    padding-bottom: 4px;
+    margin-bottom: 12px;
+  }
+
+  .clipping-textarea {
+    width: 100%;
+    min-height: 60px;
+    border: none;
+    background: transparent;
+    font-family: 'Times New Roman', serif;
+    font-size: 14px;
+    line-height: 1.5;
+    color: #222;
+    resize: vertical;
+    outline: none;
+
+    &::placeholder {
+      color: rgba(0, 0, 0, 0.3);
+    }
+  }
+
+  .clipping-text {
+    font-family: 'Times New Roman', serif;
+    font-size: 14px;
+    line-height: 1.5;
+    color: #222;
+    margin: 0;
+    white-space: pre-wrap;
+    word-break: break-word;
+    cursor: text;
+  }
+
+  .clipping-image {
+    width: 100%;
+    max-height: 120px;
+    object-fit: cover;
+    margin-top: 12px;
+    filter: grayscale(30%) contrast(110%);
+  }
+}
+
+// =============================================
+// CARD ACTIONS
+// =============================================
+
+.card-actions {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: flex;
+  gap: 4px;
+  opacity: 0;
+  transform: translateY(-4px);
+  transition: all 0.2s ease;
+  z-index: 20;
+
+  .card:hover &,
+  .card.selected & {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.action-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &.upload-btn {
+    background: rgba(0, 0, 0, 0.6);
+    color: white;
+
+    &:hover {
+      background: rgba(0, 0, 0, 0.8);
+    }
+  }
+
+  &.delete-btn {
+    background: $pin-red;
+    color: white;
+
+    &:hover {
+      background: darken($pin-red, 10%);
+    }
+  }
+}
+
+// =============================================
+// PAN HINT
+// =============================================
+
+.pan-hint {
+  position: absolute;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.6);
+  color: rgba(255, 255, 255, 0.8);
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  z-index: 100;
+
+  kbd {
+    background: rgba(255, 255, 255, 0.2);
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-family: inherit;
+    margin: 0 2px;
+  }
+}
+
+// =============================================
+// CDK DRAG STYLES
+// =============================================
+
+.cdk-drag-preview {
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+  transform: scale(1.02);
+}
+
+.cdk-drag-placeholder {
+  opacity: 0.3;
+}
+
+.cdk-drag-animating {
+  transition: transform 200ms cubic-bezier(0, 0, 0.2, 1);
 }
