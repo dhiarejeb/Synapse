@@ -1,9 +1,9 @@
 // =============================================
-// DETECTIVE BOARD - ENHANCED STYLES
+// DETECTIVE BOARD - ENHANCED STYLES V2
 // =============================================
 
-// Import Google Font for handwriting
-@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400;500;600;700&family=Special+Elite&display=swap');
+// Import Google Fonts
+@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400;500;600;700&family=Special+Elite&family=Permanent+Marker&display=swap');
 
 // Color Variables
 $cork-light: #c9a66b;
@@ -13,13 +13,18 @@ $wood-frame: #4a3728;
 $wood-frame-light: #5d4632;
 $pin-red: #c41e3a;
 $pin-highlight: #ffb6c1;
-$string-red: #8b0000;
 $paper-white: #f8f6f1;
 $paper-cream: #f5f0e1;
+
+// Extended sticky colors
 $sticky-yellow: #fff59d;
 $sticky-pink: #f8bbd9;
 $sticky-blue: #b3e5fc;
 $sticky-green: #c8e6c9;
+$sticky-orange: #ffcc80;
+$sticky-purple: #d1c4e9;
+$sticky-coral: #ffab91;
+$sticky-mint: #b2dfdb;
 
 // =============================================
 // MAIN CONTAINER
@@ -28,13 +33,14 @@ $sticky-green: #c8e6c9;
 .board-container {
   width: 100%;
   height: 100vh;
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f0f23 100%);
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 20px;
   box-sizing: border-box;
   overflow: hidden;
+  user-select: none;
 }
 
 // =============================================
@@ -44,18 +50,17 @@ $sticky-green: #c8e6c9;
 .board-frame {
   width: 100%;
   height: 100%;
-  max-width: 1600px;
-  max-height: 900px;
+  max-width: 1800px;
+  max-height: 1000px;
   background: linear-gradient(180deg, $wood-frame-light 0%, $wood-frame 50%, darken($wood-frame, 5%) 100%);
   border-radius: 8px;
   padding: 16px;
   box-shadow:
-    0 20px 60px rgba(0, 0, 0, 0.5),
+    0 25px 80px rgba(0, 0, 0, 0.6),
     inset 0 2px 4px rgba(255, 255, 255, 0.1),
     inset 0 -2px 4px rgba(0, 0, 0, 0.2);
   position: relative;
 
-  // Wood grain texture
   &::before {
     content: '';
     position: absolute;
@@ -63,9 +68,9 @@ $sticky-green: #c8e6c9;
     background: repeating-linear-gradient(
         90deg,
         transparent,
-        transparent 2px,
-        rgba(0, 0, 0, 0.03) 2px,
-        rgba(0, 0, 0, 0.03) 4px
+        transparent 3px,
+        rgba(0, 0, 0, 0.02) 3px,
+        rgba(0, 0, 0, 0.02) 6px
     );
     border-radius: 8px;
     pointer-events: none;
@@ -80,8 +85,8 @@ $sticky-green: #c8e6c9;
   width: 100%;
   height: 100%;
   background:
-    radial-gradient(ellipse at 30% 20%, rgba(255, 255, 255, 0.05) 0%, transparent 50%),
-    radial-gradient(circle at 70% 80%, rgba(0, 0, 0, 0.1) 0%, transparent 40%),
+    radial-gradient(ellipse at 20% 10%, rgba(255, 255, 255, 0.08) 0%, transparent 50%),
+    radial-gradient(circle at 80% 90%, rgba(0, 0, 0, 0.15) 0%, transparent 40%),
     linear-gradient(135deg, $cork-light 0%, $cork-texture 50%, $cork-dark 100%);
   border-radius: 4px;
   position: relative;
@@ -92,22 +97,20 @@ $sticky-green: #c8e6c9;
     cursor: grabbing;
   }
 
-  // Cork texture overlay
   &::before {
     content: '';
     position: absolute;
     inset: 0;
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
-    opacity: 0.15;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+    opacity: 0.12;
     pointer-events: none;
   }
 
-  // Vignette effect
   &::after {
     content: '';
     position: absolute;
     inset: 0;
-    background: radial-gradient(ellipse at center, transparent 40%, rgba(0, 0, 0, 0.3) 100%);
+    background: radial-gradient(ellipse at center, transparent 30%, rgba(0, 0, 0, 0.35) 100%);
     pointer-events: none;
   }
 }
@@ -128,12 +131,14 @@ $sticky-green: #c8e6c9;
   display: flex;
   align-items: center;
   gap: 16px;
-  background: rgba(30, 30, 40, 0.95);
-  backdrop-filter: blur(10px);
-  padding: 12px 20px;
-  border-radius: 12px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(20, 20, 30, 0.95);
+  backdrop-filter: blur(12px);
+  padding: 10px 20px;
+  border-radius: 14px;
+  box-shadow:
+    0 10px 40px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .toolbar-group {
@@ -143,58 +148,74 @@ $sticky-green: #c8e6c9;
 }
 
 .toolbar-label {
-  font-size: 12px;
-  font-weight: 500;
-  color: rgba(255, 255, 255, 0.7);
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.5);
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.8px;
 }
 
-.toolbar-select {
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 6px;
-  padding: 6px 12px;
-  color: white;
-  font-size: 13px;
-  cursor: pointer;
-  outline: none;
+.type-picker {
+  display: flex;
+  gap: 4px;
+}
 
-  &:focus {
-    border-color: $pin-red;
+.type-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  background: rgba(255, 255, 255, 0.05);
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateY(-1px);
   }
 
-  option {
-    background: #1a1a2e;
-    color: white;
+  &.active {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.3);
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
   }
 }
 
 .color-picker {
   display: flex;
-  gap: 6px;
+  gap: 5px;
+
+  &.string-colors {
+    gap: 4px;
+  }
 }
 
 .color-btn {
-  width: 24px;
-  height: 24px;
+  width: 22px;
+  height: 22px;
   border-radius: 50%;
   border: 2px solid transparent;
   cursor: pointer;
   transition: all 0.2s ease;
-
-  &.sticky-yellow { background: $sticky-yellow; }
-  &.sticky-pink { background: $sticky-pink; }
-  &.sticky-blue { background: $sticky-blue; }
-  &.sticky-green { background: $sticky-green; }
+  box-shadow: inset 0 -2px 4px rgba(0, 0, 0, 0.15);
 
   &:hover {
-    transform: scale(1.15);
+    transform: scale(1.2);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
   }
 
   &.active {
     border-color: white;
-    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.3);
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.3), inset 0 -2px 4px rgba(0, 0, 0, 0.15);
+  }
+
+  &.small {
+    width: 18px;
+    height: 18px;
   }
 }
 
@@ -202,56 +223,61 @@ $sticky-green: #c8e6c9;
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 8px 16px;
+  padding: 8px 14px;
   border-radius: 8px;
   border: none;
   font-size: 13px;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
 
   &.add-btn {
-    background: $pin-red;
+    background: linear-gradient(135deg, $pin-red 0%, darken($pin-red, 10%) 100%);
     color: white;
+    box-shadow: 0 2px 8px rgba($pin-red, 0.4);
 
     &:hover {
-      background: lighten($pin-red, 5%);
       transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba($pin-red, 0.5);
     }
 
-    .btn-icon {
-      font-size: 16px;
-      font-weight: bold;
+    &:active {
+      transform: translateY(0);
     }
   }
 
   &.link-btn {
-    background: rgba(255, 255, 255, 0.1);
-    color: white;
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.9);
+    border: 1px solid rgba(255, 255, 255, 0.15);
 
     &:hover {
-      background: rgba(255, 255, 255, 0.15);
+      background: rgba(255, 255, 255, 0.12);
     }
 
     &.active {
-      background: $string-red;
-      border-color: $string-red;
+      background: linear-gradient(135deg, #8b0000 0%, #5c0000 100%);
+      border-color: #8b0000;
+      box-shadow: 0 0 15px rgba(139, 0, 0, 0.5);
     }
   }
 }
 
 .toolbar-divider {
   width: 1px;
-  height: 24px;
-  background: rgba(255, 255, 255, 0.2);
+  height: 28px;
+  background: rgba(255, 255, 255, 0.15);
 }
 
 .toolbar-hint {
   font-size: 12px;
-  color: $pin-red;
-  font-style: italic;
+  color: #ff6b6b;
+  font-weight: 500;
   animation: pulse 1.5s ease-in-out infinite;
+
+  &.success {
+    color: #69db7c;
+  }
 }
 
 @keyframes pulse {
@@ -266,7 +292,7 @@ $sticky-green: #c8e6c9;
 .notes-wrapper {
   position: absolute;
   inset: 0;
-  transition: transform 0.05s linear;
+  will-change: transform;
 }
 
 // =============================================
@@ -279,30 +305,42 @@ $sticky-green: #c8e6c9;
   left: 0;
   pointer-events: none;
   z-index: 5;
+  overflow: visible;
 }
 
 .link-group {
   .link-string {
     pointer-events: auto;
     cursor: pointer;
-    stroke: $string-red;
-    stroke-width: 2;
-    stroke-linecap: round;
-    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3));
-    transition: stroke-width 0.2s ease;
+    transition: stroke-width 0.15s ease, opacity 0.15s ease;
 
     &:hover {
       stroke-width: 4;
-      stroke: lighten($string-red, 10%);
+      opacity: 0.8;
+
+      & + .link-pin,
+      & ~ .link-pin {
+        transform: scale(1.4);
+      }
     }
   }
 
-  .pin-head {
-    filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.4));
+  .link-pin {
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.4));
+    transition: r 0.15s ease;
   }
 
   .pin-highlight {
-    opacity: 0.8;
+    opacity: 0.9;
+  }
+
+  .link-delete-hint {
+    font-size: 10px;
+    fill: rgba(255, 255, 255, 0.9);
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    pointer-events: none;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
   }
 }
 
@@ -313,16 +351,16 @@ $sticky-green: #c8e6c9;
 .card {
   position: absolute;
   cursor: grab;
-  transition: box-shadow 0.2s ease, transform 0.1s ease;
-  user-select: none;
+  transition: box-shadow 0.15s ease;
+  will-change: transform, left, top;
 
-  &:active {
+  &:active,
+  &.dragging {
     cursor: grabbing;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35) !important;
   }
 
   &.selected {
-    z-index: 100 !important;
-
     &::after {
       content: '';
       position: absolute;
@@ -330,12 +368,16 @@ $sticky-green: #c8e6c9;
       border: 2px solid $pin-red;
       border-radius: inherit;
       pointer-events: none;
-      animation: selection-pulse 1.5s ease-in-out infinite;
+      animation: selection-glow 2s ease-in-out infinite;
     }
   }
 
   &.link-mode {
     cursor: crosshair;
+
+    &:hover {
+      transform: scale(1.02);
+    }
   }
 
   &.link-source {
@@ -343,21 +385,21 @@ $sticky-green: #c8e6c9;
       content: '';
       position: absolute;
       inset: -4px;
-      border: 2px dashed $pin-red;
+      border: 3px dashed $pin-red;
       border-radius: inherit;
       pointer-events: none;
-      animation: dash-animation 0.5s linear infinite;
+      animation: dash-rotate 1s linear infinite;
     }
   }
 }
 
-@keyframes selection-pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
+@keyframes selection-glow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba($pin-red, 0.4); }
+  50% { box-shadow: 0 0 15px 5px rgba($pin-red, 0.2); }
 }
 
-@keyframes dash-animation {
-  to { stroke-dashoffset: -10; }
+@keyframes dash-rotate {
+  to { stroke-dashoffset: -20; }
 }
 
 // =============================================
@@ -366,40 +408,65 @@ $sticky-green: #c8e6c9;
 
 .push-pin {
   position: absolute;
-  top: -8px;
+  top: -6px;
   left: 50%;
   transform: translateX(-50%);
   z-index: 10;
 
   .pin-head {
-    width: 16px;
-    height: 16px;
-    background: radial-gradient(circle at 30% 30%, lighten($pin-red, 20%), $pin-red 50%, darken($pin-red, 15%));
+    width: 18px;
+    height: 18px;
+    background: radial-gradient(circle at 35% 35%,
+      lighten($pin-red, 25%) 0%,
+      $pin-red 40%,
+      darken($pin-red, 20%) 100%);
     border-radius: 50%;
     box-shadow:
-      0 2px 4px rgba(0, 0, 0, 0.3),
-      inset 0 -2px 4px rgba(0, 0, 0, 0.2),
-      inset 0 2px 4px rgba(255, 255, 255, 0.3);
+      0 3px 6px rgba(0, 0, 0, 0.4),
+      inset 0 -3px 6px rgba(0, 0, 0, 0.3),
+      inset 0 3px 6px rgba(255, 255, 255, 0.4);
     position: relative;
 
     &::after {
       content: '';
       position: absolute;
-      top: 3px;
-      left: 4px;
-      width: 4px;
-      height: 4px;
-      background: rgba(255, 255, 255, 0.6);
+      top: 4px;
+      left: 5px;
+      width: 5px;
+      height: 5px;
+      background: rgba(255, 255, 255, 0.7);
       border-radius: 50%;
     }
   }
 
   .pin-point {
     width: 4px;
-    height: 8px;
-    background: linear-gradient(to bottom, #888, #666);
+    height: 10px;
+    background: linear-gradient(to bottom, #999, #666);
     margin: 0 auto;
     border-radius: 0 0 2px 2px;
+    box-shadow: 0 2px 3px rgba(0, 0, 0, 0.3);
+  }
+
+  &.small {
+    top: -4px;
+
+    .pin-head {
+      width: 14px;
+      height: 14px;
+
+      &::after {
+        top: 3px;
+        left: 4px;
+        width: 4px;
+        height: 4px;
+      }
+    }
+
+    .pin-point {
+      width: 3px;
+      height: 7px;
+    }
   }
 }
 
@@ -409,36 +476,33 @@ $sticky-green: #c8e6c9;
 
 .sticky-note {
   min-width: 180px;
-  max-width: 250px;
+  max-width: 260px;
   min-height: 100px;
-  padding: 24px 16px 16px;
+  padding: 28px 16px 16px;
   border-radius: 2px;
   box-shadow:
-    2px 2px 8px rgba(0, 0, 0, 0.2),
+    3px 3px 12px rgba(0, 0, 0, 0.25),
     0 0 1px rgba(0, 0, 0, 0.1);
 
-  &.sticky-yellow {
-    background: linear-gradient(135deg, $sticky-yellow 0%, darken($sticky-yellow, 5%) 100%);
-  }
-  &.sticky-pink {
-    background: linear-gradient(135deg, $sticky-pink 0%, darken($sticky-pink, 5%) 100%);
-  }
-  &.sticky-blue {
-    background: linear-gradient(135deg, $sticky-blue 0%, darken($sticky-blue, 5%) 100%);
-  }
-  &.sticky-green {
-    background: linear-gradient(135deg, $sticky-green 0%, darken($sticky-green, 5%) 100%);
-  }
+  // Color classes
+  &.sticky-yellow { background: linear-gradient(145deg, $sticky-yellow 0%, darken($sticky-yellow, 8%) 100%); }
+  &.sticky-pink { background: linear-gradient(145deg, $sticky-pink 0%, darken($sticky-pink, 8%) 100%); }
+  &.sticky-blue { background: linear-gradient(145deg, $sticky-blue 0%, darken($sticky-blue, 8%) 100%); }
+  &.sticky-green { background: linear-gradient(145deg, $sticky-green 0%, darken($sticky-green, 8%) 100%); }
+  &.sticky-orange { background: linear-gradient(145deg, $sticky-orange 0%, darken($sticky-orange, 8%) 100%); }
+  &.sticky-purple { background: linear-gradient(145deg, $sticky-purple 0%, darken($sticky-purple, 8%) 100%); }
+  &.sticky-coral { background: linear-gradient(145deg, $sticky-coral 0%, darken($sticky-coral, 8%) 100%); }
+  &.sticky-mint { background: linear-gradient(145deg, $sticky-mint 0%, darken($sticky-mint, 8%) 100%); }
 
-  // Folded corner effect
+  // Folded corner
   &::before {
     content: '';
     position: absolute;
     bottom: 0;
     right: 0;
-    width: 20px;
-    height: 20px;
-    background: linear-gradient(135deg, transparent 50%, rgba(0, 0, 0, 0.1) 50%);
+    width: 25px;
+    height: 25px;
+    background: linear-gradient(135deg, transparent 50%, rgba(0, 0, 0, 0.08) 50%);
   }
 
   .card-content {
@@ -451,36 +515,35 @@ $sticky-green: #c8e6c9;
     border: none;
     background: transparent;
     font-family: 'Caveat', cursive;
-    font-size: 20px;
-    line-height: 1.4;
-    color: #333;
+    font-size: 22px;
+    line-height: 1.3;
+    color: #2a2a2a;
     resize: vertical;
     outline: none;
 
     &::placeholder {
-      color: rgba(0, 0, 0, 0.4);
+      color: rgba(0, 0, 0, 0.35);
     }
   }
 
   .note-text {
     font-family: 'Caveat', cursive;
-    font-size: 20px;
-    line-height: 1.4;
-    color: #333;
+    font-size: 22px;
+    line-height: 1.3;
+    color: #2a2a2a;
     margin: 0;
     white-space: pre-wrap;
     word-break: break-word;
-    min-height: 40px;
-    cursor: text;
+    min-height: 30px;
   }
 
   .note-image {
     width: 100%;
-    max-height: 150px;
+    max-height: 160px;
     object-fit: cover;
     border-radius: 4px;
     margin-top: 12px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
   }
 }
 
@@ -494,18 +557,19 @@ $sticky-green: #c8e6c9;
   padding: 12px 12px 8px;
   border-radius: 2px;
   box-shadow:
-    3px 3px 10px rgba(0, 0, 0, 0.25),
+    4px 4px 15px rgba(0, 0, 0, 0.3),
     0 0 1px rgba(0, 0, 0, 0.1);
 
   .photo-frame {
     width: 100%;
     aspect-ratio: 1;
-    background: #ddd;
-    margin-bottom: 8px;
+    background: #e8e8e8;
+    margin-bottom: 10px;
     overflow: hidden;
+    border: 1px solid #ddd;
   }
 
-  .photo-area {
+  .photo-placeholder {
     width: 100%;
     height: 100%;
     display: flex;
@@ -513,16 +577,19 @@ $sticky-green: #c8e6c9;
     align-items: center;
     justify-content: center;
     gap: 8px;
-    color: #999;
+    color: #aaa;
     cursor: pointer;
-    transition: background 0.2s ease;
+    transition: all 0.2s ease;
+    background: linear-gradient(135deg, #f5f5f5 0%, #e8e8e8 100%);
 
     &:hover {
-      background: #eee;
+      background: linear-gradient(135deg, #eee 0%, #ddd 100%);
+      color: #888;
     }
 
     span {
       font-size: 11px;
+      font-weight: 500;
     }
   }
 
@@ -534,7 +601,7 @@ $sticky-green: #c8e6c9;
 
   .photo-caption {
     text-align: center;
-    min-height: 32px;
+    min-height: 28px;
   }
 
   .caption-textarea {
@@ -549,7 +616,7 @@ $sticky-green: #c8e6c9;
     outline: none;
 
     &::placeholder {
-      color: rgba(0, 0, 0, 0.4);
+      color: rgba(0, 0, 0, 0.35);
     }
   }
 
@@ -558,7 +625,6 @@ $sticky-green: #c8e6c9;
     font-size: 16px;
     color: #555;
     margin: 0;
-    cursor: text;
   }
 }
 
@@ -567,22 +633,21 @@ $sticky-green: #c8e6c9;
 // =============================================
 
 .document-card {
-  width: 200px;
-  min-height: 150px;
+  width: 220px;
+  min-height: 160px;
   background: $paper-white;
   border-radius: 2px;
   box-shadow:
-    2px 2px 8px rgba(0, 0, 0, 0.2),
+    3px 3px 12px rgba(0, 0, 0, 0.25),
     0 0 1px rgba(0, 0, 0, 0.1);
   overflow: hidden;
 
   .document-content {
     position: relative;
-    padding: 24px 16px 16px 40px;
-    min-height: 120px;
+    padding: 28px 16px 16px 44px;
+    min-height: 130px;
   }
 
-  // Lined paper effect
   .document-lines {
     position: absolute;
     inset: 0;
@@ -595,10 +660,9 @@ $sticky-green: #c8e6c9;
     pointer-events: none;
   }
 
-  // Red margin line
   .document-margin {
     position: absolute;
-    left: 32px;
+    left: 36px;
     top: 0;
     bottom: 0;
     width: 1px;
@@ -608,20 +672,20 @@ $sticky-green: #c8e6c9;
 
   .document-textarea {
     width: 100%;
-    min-height: 100px;
+    min-height: 110px;
     border: none;
     background: transparent;
     font-family: 'Special Elite', 'Courier New', monospace;
     font-size: 13px;
     line-height: 24px;
-    color: #333;
+    color: #222;
     resize: vertical;
     outline: none;
     position: relative;
     z-index: 1;
 
     &::placeholder {
-      color: rgba(0, 0, 0, 0.3);
+      color: rgba(0, 0, 0, 0.25);
     }
   }
 
@@ -629,13 +693,12 @@ $sticky-green: #c8e6c9;
     font-family: 'Special Elite', 'Courier New', monospace;
     font-size: 13px;
     line-height: 24px;
-    color: #333;
+    color: #222;
     margin: 0;
     white-space: pre-wrap;
     word-break: break-word;
     position: relative;
     z-index: 1;
-    cursor: text;
   }
 }
 
@@ -648,43 +711,43 @@ $sticky-green: #c8e6c9;
   background: $paper-cream;
   border-radius: 2px;
   box-shadow:
-    2px 2px 8px rgba(0, 0, 0, 0.2),
+    3px 3px 12px rgba(0, 0, 0, 0.25),
     0 0 1px rgba(0, 0, 0, 0.1);
 
-  // Torn paper effect - top edge
+  // Torn paper effect
   clip-path: polygon(
-      0% 2%, 3% 0%, 6% 3%, 9% 1%, 12% 2%, 15% 0%, 18% 2%, 21% 1%, 24% 3%, 27% 0%,
-      30% 2%, 33% 1%, 36% 3%, 39% 0%, 42% 2%, 45% 1%, 48% 2%, 51% 0%, 54% 3%,
-      57% 1%, 60% 2%, 63% 0%, 66% 2%, 69% 1%, 72% 3%, 75% 0%, 78% 2%, 81% 1%,
-      84% 2%, 87% 0%, 90% 3%, 93% 1%, 96% 2%, 100% 0%,
+      0% 3%, 2% 0%, 5% 2%, 8% 0%, 11% 3%, 14% 1%, 17% 2%, 20% 0%, 23% 3%,
+      26% 1%, 29% 2%, 32% 0%, 35% 2%, 38% 1%, 41% 3%, 44% 0%, 47% 2%,
+      50% 1%, 53% 3%, 56% 0%, 59% 2%, 62% 1%, 65% 2%, 68% 0%, 71% 3%,
+      74% 1%, 77% 2%, 80% 0%, 83% 3%, 86% 1%, 89% 2%, 92% 0%, 95% 2%, 98% 1%, 100% 0%,
       100% 100%, 0% 100%
   );
 
   .clipping-content {
-    padding: 24px 16px 16px;
+    padding: 28px 16px 16px;
   }
 
   .clipping-header {
     font-family: 'Times New Roman', serif;
-    font-size: 12px;
+    font-size: 11px;
     font-weight: bold;
     text-transform: uppercase;
-    letter-spacing: 2px;
-    color: #666;
-    border-bottom: 2px solid #333;
-    padding-bottom: 4px;
+    letter-spacing: 3px;
+    color: #555;
+    border-bottom: 2px solid #222;
+    padding-bottom: 6px;
     margin-bottom: 12px;
   }
 
   .clipping-textarea {
     width: 100%;
-    min-height: 60px;
+    min-height: 50px;
     border: none;
     background: transparent;
     font-family: 'Times New Roman', serif;
     font-size: 14px;
     line-height: 1.5;
-    color: #222;
+    color: #1a1a1a;
     resize: vertical;
     outline: none;
 
@@ -697,11 +760,10 @@ $sticky-green: #c8e6c9;
     font-family: 'Times New Roman', serif;
     font-size: 14px;
     line-height: 1.5;
-    color: #222;
+    color: #1a1a1a;
     margin: 0;
     white-space: pre-wrap;
     word-break: break-word;
-    cursor: text;
   }
 
   .clipping-image {
@@ -709,7 +771,63 @@ $sticky-green: #c8e6c9;
     max-height: 120px;
     object-fit: cover;
     margin-top: 12px;
-    filter: grayscale(30%) contrast(110%);
+    filter: grayscale(40%) contrast(110%) sepia(10%);
+    border: 1px solid #ccc;
+  }
+}
+
+// =============================================
+// LABEL CARD (NEW)
+// =============================================
+
+.label-card {
+  min-width: 80px;
+  max-width: 160px;
+  background: $paper-cream;
+  padding: 16px 14px 10px;
+  border-radius: 2px;
+  box-shadow:
+    2px 2px 8px rgba(0, 0, 0, 0.2),
+    0 0 1px rgba(0, 0, 0, 0.1);
+
+  // Tape effect on top
+  &::before {
+    content: '';
+    position: absolute;
+    top: -4px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 50px;
+    height: 18px;
+    background: rgba(255, 255, 200, 0.6);
+    border-radius: 2px;
+    z-index: 5;
+  }
+
+  .label-content {
+    text-align: center;
+  }
+
+  .label-input {
+    width: 100%;
+    border: none;
+    background: transparent;
+    font-family: 'Permanent Marker', cursive;
+    font-size: 16px;
+    text-align: center;
+    color: $pin-red;
+    outline: none;
+
+    &::placeholder {
+      color: rgba($pin-red, 0.4);
+    }
+  }
+
+  .label-text {
+    font-family: 'Permanent Marker', cursive;
+    font-size: 16px;
+    color: $pin-red;
+    margin: 0;
   }
 }
 
@@ -719,20 +837,57 @@ $sticky-green: #c8e6c9;
 
 .card-actions {
   position: absolute;
-  top: 8px;
-  right: 8px;
+  top: 6px;
+  right: 6px;
   display: flex;
+  flex-direction: column;
   gap: 4px;
   opacity: 0;
-  transform: translateY(-4px);
+  transform: translateY(-4px) scale(0.95);
   transition: all 0.2s ease;
   z-index: 20;
 
   .card:hover &,
   .card.selected & {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateY(0) scale(1);
   }
+
+  &.small {
+    top: 4px;
+    right: 4px;
+  }
+}
+
+.color-change-row {
+  display: flex;
+  gap: 3px;
+  padding: 4px;
+  background: rgba(0, 0, 0, 0.6);
+  border-radius: 6px;
+}
+
+.mini-color-btn {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  &:hover {
+    transform: scale(1.2);
+  }
+
+  &.active {
+    border-color: white;
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.5);
+  }
+}
+
+.action-row {
+  display: flex;
+  gap: 4px;
 }
 
 .action-btn {
@@ -747,11 +902,12 @@ $sticky-green: #c8e6c9;
   transition: all 0.2s ease;
 
   &.upload-btn {
-    background: rgba(0, 0, 0, 0.6);
+    background: rgba(0, 0, 0, 0.7);
     color: white;
 
     &:hover {
-      background: rgba(0, 0, 0, 0.8);
+      background: rgba(0, 0, 0, 0.85);
+      transform: scale(1.05);
     }
   }
 
@@ -761,7 +917,14 @@ $sticky-green: #c8e6c9;
 
     &:hover {
       background: darken($pin-red, 10%);
+      transform: scale(1.05);
     }
+  }
+
+  &.small {
+    width: 22px;
+    height: 22px;
+    border-radius: 4px;
   }
 }
 
@@ -774,35 +937,20 @@ $sticky-green: #c8e6c9;
   bottom: 16px;
   left: 50%;
   transform: translateX(-50%);
-  background: rgba(0, 0, 0, 0.6);
+  background: rgba(0, 0, 0, 0.7);
   color: rgba(255, 255, 255, 0.8);
-  padding: 6px 12px;
-  border-radius: 6px;
+  padding: 8px 16px;
+  border-radius: 8px;
   font-size: 12px;
   z-index: 100;
+  backdrop-filter: blur(4px);
 
   kbd {
     background: rgba(255, 255, 255, 0.2);
-    padding: 2px 6px;
-    border-radius: 3px;
+    padding: 2px 8px;
+    border-radius: 4px;
     font-family: inherit;
+    font-weight: 600;
     margin: 0 2px;
   }
-}
-
-// =============================================
-// CDK DRAG STYLES
-// =============================================
-
-.cdk-drag-preview {
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
-  transform: scale(1.02);
-}
-
-.cdk-drag-placeholder {
-  opacity: 0.3;
-}
-
-.cdk-drag-animating {
-  transition: transform 200ms cubic-bezier(0, 0, 0.2, 1);
 }

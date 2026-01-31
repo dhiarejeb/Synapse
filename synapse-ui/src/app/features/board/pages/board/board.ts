@@ -1,63 +1,104 @@
-import { ChangeDetectorRef, Component, OnInit, ElementRef, ViewChild, AfterViewInit } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
-import { BoardResponseDto } from '../../../../services/models/board-response-dto';
-import { NoteResponseDto } from '../../../../services/models/note-response-dto';
-import { LinkResponse } from '../../../../services/models/link-response';
-import { HttpClient } from '@angular/common/http';
-import { getById } from '../../../../services/fn/board-controller/get-by-id';
-import { getNotes } from '../../../../services/fn/note-controller/get-notes';
-import { create1 } from '../../../../services/fn/note-controller/create-1';
-import { delete1 } from '../../../../services/fn/note-controller/delete-1';
-import { patch1 } from '../../../../services/fn/note-controller/patch-1';
-import { getBoardLinks } from '../../../../services/fn/link-controller/get-board-links';
-import { deleteLink } from '../../../../services/fn/link-controller/delete-link';
-import { createLink } from '../../../../services/fn/link-controller/create-link';
-import { NoteRequestDto } from '../../../../services/models/note-request-dto';
-import { CreateLinkRequest } from '../../../../services/models/create-link-request';
-import { CommonModule } from '@angular/common';
-import { CdkDragEnd, DragDropModule } from '@angular/cdk/drag-drop';
-import { uploadImage } from '../../../../services/fn/note-controller/upload-image';
-import { FormsModule } from '@angular/forms';
+import {
+  ChangeDetectorRef,
+  Component,
+  OnInit,
+  ElementRef,
+  ViewChild,
+  AfterViewInit,
+  OnDestroy,
+  NgZone,
+} from "@angular/core";
+import { ActivatedRoute } from "@angular/router";
+import { BoardResponseDto } from "../../../../services/models/board-response-dto";
+import { NoteResponseDto } from "../../../../services/models/note-response-dto";
+import { LinkResponse } from "../../../../services/models/link-response";
+import { HttpClient } from "@angular/common/http";
+import { getById } from "../../../../services/fn/board-controller/get-by-id";
+import { getNotes } from "../../../../services/fn/note-controller/get-notes";
+import { create1 } from "../../../../services/fn/note-controller/create-1";
+import { delete1 } from "../../../../services/fn/note-controller/delete-1";
+import { patch1 } from "../../../../services/fn/note-controller/patch-1";
+import { getBoardLinks } from "../../../../services/fn/link-controller/get-board-links";
+import { deleteLink } from "../../../../services/fn/link-controller/delete-link";
+import { createLink } from "../../../../services/fn/link-controller/create-link";
+import { NoteRequestDto } from "../../../../services/models/note-request-dto";
+import { CreateLinkRequest } from "../../../../services/models/create-link-request";
+import { CommonModule } from "@angular/common";
+import { DragDropModule } from "@angular/cdk/drag-drop";
+import { uploadImage } from "../../../../services/fn/note-controller/upload-image";
+import { FormsModule } from "@angular/forms";
 
-const API_URL = 'http://localhost:8080';
+const API_URL = "http://localhost:8080";
+
+// Note types
+type NoteType = "sticky" | "photo" | "document" | "clipping" | "label";
 
 // Extended note type with UI properties
 interface NoteWithUI extends NoteResponseDto {
   rotation?: number;
   zIndex?: number;
-  noteType?: 'sticky' | 'photo' | 'document' | 'clipping';
+  noteType?: NoteType;
+  // For tracking drag state
+  isDragging?: boolean;
+  dragStartX?: number;
+  dragStartY?: number;
+}
+
+// Color configuration
+interface ColorConfig {
+  value: string;
+  label: string;
+  class: string;
+  hex: string;
 }
 
 @Component({
-  selector: 'app-board',
+  selector: "app-board",
   standalone: true,
   imports: [CommonModule, DragDropModule, FormsModule],
-  templateUrl: './board.html',
-  styleUrls: ['./board.scss'],
+  templateUrl: "./board.page.html",
+  styleUrls: ["./board.page.scss"],
 })
-export class BoardPage implements OnInit, AfterViewInit {
-  @ViewChild('boardContainer') boardContainer!: ElementRef;
+export class BoardPage implements OnInit, AfterViewInit, OnDestroy {
+  @ViewChild("boardContainer") boardContainer!: ElementRef;
+  @ViewChild("notesWrapper") notesWrapper!: ElementRef;
 
   boardId!: string;
   board?: BoardResponseDto;
 
-  // Card types and colors
-  NOTE_TYPES = [
-    { value: 'sticky', label: 'Sticky Note' },
-    { value: 'photo', label: 'Photo' },
-    { value: 'document', label: 'Document' },
-    { value: 'clipping', label: 'Clipping' }
+  // Card types
+  NOTE_TYPES: { value: NoteType; label: string; icon: string }[] = [
+    { value: "sticky", label: "Sticky Note", icon: "📝" },
+    { value: "photo", label: "Photo", icon: "📷" },
+    { value: "document", label: "Document", icon: "📄" },
+    { value: "clipping", label: "Clipping", icon: "📰" },
+    { value: "label", label: "Label", icon: "🏷️" },
   ];
 
-  STICKY_COLORS = [
-    { value: 'yellow', label: 'Yellow', class: 'sticky-yellow' },
-    { value: 'pink', label: 'Pink', class: 'sticky-pink' },
-    { value: 'blue', label: 'Blue', class: 'sticky-blue' },
-    { value: 'green', label: 'Green', class: 'sticky-green' }
+  // Extended color palette
+  STICKY_COLORS: ColorConfig[] = [
+    { value: "yellow", label: "Yellow", class: "sticky-yellow", hex: "#fff59d" },
+    { value: "pink", label: "Pink", class: "sticky-pink", hex: "#f8bbd9" },
+    { value: "blue", label: "Blue", class: "sticky-blue", hex: "#b3e5fc" },
+    { value: "green", label: "Green", class: "sticky-green", hex: "#c8e6c9" },
+    { value: "orange", label: "Orange", class: "sticky-orange", hex: "#ffcc80" },
+    { value: "purple", label: "Purple", class: "sticky-purple", hex: "#d1c4e9" },
+    { value: "coral", label: "Coral", class: "sticky-coral", hex: "#ffab91" },
+    { value: "mint", label: "Mint", class: "sticky-mint", hex: "#b2dfdb" },
   ];
 
-  newNoteType: 'sticky' | 'photo' | 'document' | 'clipping' = 'sticky';
-  newNoteColor = 'yellow';
+  // String colors for links
+  STRING_COLORS = [
+    { value: "red", label: "Red", hex: "#8b0000" },
+    { value: "blue", label: "Blue", hex: "#1a237e" },
+    { value: "green", label: "Green", hex: "#1b5e20" },
+    { value: "yellow", label: "Yellow", hex: "#f57f17" },
+    { value: "white", label: "White", hex: "#ffffff" },
+  ];
+
+  newNoteType: NoteType = "sticky";
+  newNoteColor = "yellow";
+  newStringColor = "red";
 
   notes: NoteWithUI[] = [];
   links: LinkResponse[] = [];
@@ -73,7 +114,7 @@ export class BoardPage implements OnInit, AfterViewInit {
   linkMode = false;
   linkFromNoteId: string | null = null;
 
-  // Board interaction
+  // Board interaction - improved panning
   isPanning = false;
   panOffset = { x: 0, y: 0 };
   lastPanPoint = { x: 0, y: 0 };
@@ -85,16 +126,33 @@ export class BoardPage implements OnInit, AfterViewInit {
   selectedNoteId: string | null = null;
   editingNoteId: string | null = null;
 
+  // Drag state - using native drag for better performance
+  draggingNote: NoteWithUI | null = null;
+  dragOffset = { x: 0, y: 0 };
+
+  // Store note element refs for link calculations
+  private noteElements = new Map<string, HTMLElement>();
+
+  // Bound event handlers for cleanup
+  private boundMouseMove: (e: MouseEvent) => void;
+  private boundMouseUp: (e: MouseEvent) => void;
+  private boundKeyDown: (e: KeyboardEvent) => void;
+
   constructor(
     private route: ActivatedRoute,
     private http: HttpClient,
-    private cd: ChangeDetectorRef
-  ) {}
+    private cd: ChangeDetectorRef,
+    private ngZone: NgZone
+  ) {
+    this.boundMouseMove = this.onMouseMove.bind(this);
+    this.boundMouseUp = this.onMouseUp.bind(this);
+    this.boundKeyDown = this.onKeyDown.bind(this);
+  }
 
   ngOnInit(): void {
-    const id = this.route.snapshot.paramMap.get('id');
+    const id = this.route.snapshot.paramMap.get("id");
     if (!id) {
-      this.errorBoard = 'No board ID provided';
+      this.errorBoard = "No board ID provided";
       return;
     }
     this.boardId = id;
@@ -102,16 +160,28 @@ export class BoardPage implements OnInit, AfterViewInit {
   }
 
   ngAfterViewInit(): void {
-    // Set up keyboard listeners for panning
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') {
-        this.linkMode = false;
-        this.linkFromNoteId = null;
-        this.selectedNoteId = null;
-        this.editingNoteId = null;
-        this.cd.detectChanges();
-      }
-    });
+    document.addEventListener("mousemove", this.boundMouseMove);
+    document.addEventListener("mouseup", this.boundMouseUp);
+    document.addEventListener("keydown", this.boundKeyDown);
+  }
+
+  ngOnDestroy(): void {
+    document.removeEventListener("mousemove", this.boundMouseMove);
+    document.removeEventListener("mouseup", this.boundMouseUp);
+    document.removeEventListener("keydown", this.boundKeyDown);
+  }
+
+  private onKeyDown(e: KeyboardEvent): void {
+    if (e.key === "Escape") {
+      this.linkMode = false;
+      this.linkFromNoteId = null;
+      this.selectedNoteId = null;
+      this.editingNoteId = null;
+      this.cd.detectChanges();
+    }
+    if (e.key === "Delete" && this.selectedNoteId && !this.editingNoteId) {
+      this.deleteNote(this.selectedNoteId);
+    }
   }
 
   /* =========================
@@ -121,14 +191,14 @@ export class BoardPage implements OnInit, AfterViewInit {
   private loadBoard(): void {
     this.loadingBoard = true;
     getById(this.http, API_URL, { id: this.boardId }).subscribe({
-      next: res => {
+      next: (res) => {
         this.board = res.body!;
         this.loadNotes();
         this.loadLinks();
       },
-      error: err => {
-        console.error('Error loading board:', err);
-        this.errorBoard = 'Unable to load board';
+      error: (err) => {
+        console.error("Error loading board:", err);
+        this.errorBoard = "Unable to load board";
       },
       complete: () => (this.loadingBoard = false),
     });
@@ -137,18 +207,18 @@ export class BoardPage implements OnInit, AfterViewInit {
   private loadNotes(): void {
     this.loadingNotes = true;
     getNotes(this.http, API_URL, { boardId: this.boardId }).subscribe({
-      next: res => {
-        this.notes = (res.body ?? []).map(note => ({
+      next: (res) => {
+        this.notes = (res.body ?? []).map((note) => ({
           ...note,
           rotation: this.getRandomRotation(),
           zIndex: 10,
-          noteType: (note as any).noteType || 'sticky'
+          noteType: (note as any).noteType || "sticky",
         }));
         this.cd.detectChanges();
       },
-      error: err => {
-        console.error('Error loading notes:', err);
-        this.errorNotes = 'Unable to load notes';
+      error: (err) => {
+        console.error("Error loading notes:", err);
+        this.errorNotes = "Unable to load notes";
         this.cd.detectChanges();
       },
       complete: () => (this.loadingNotes = false),
@@ -158,13 +228,13 @@ export class BoardPage implements OnInit, AfterViewInit {
   private loadLinks(): void {
     this.loadingLinks = true;
     getBoardLinks(this.http, API_URL, { boardId: this.boardId }).subscribe({
-      next: res => {
+      next: (res) => {
         this.links = res.body ?? [];
         this.cd.detectChanges();
       },
-      error: err => {
-        console.error('Error loading links:', err);
-        this.errorLinks = 'Unable to load links';
+      error: (err) => {
+        console.error("Error loading links:", err);
+        this.errorLinks = "Unable to load links";
         this.cd.detectChanges();
       },
       complete: () => (this.loadingLinks = false),
@@ -176,7 +246,7 @@ export class BoardPage implements OnInit, AfterViewInit {
   ========================= */
 
   getRandomRotation(): number {
-    return (Math.random() - 0.5) * 8; // -4 to +4 degrees
+    return (Math.random() - 0.5) * 6; // -3 to +3 degrees
   }
 
   /* =========================
@@ -186,28 +256,28 @@ export class BoardPage implements OnInit, AfterViewInit {
   createNote(): void {
     const payload: NoteRequestDto = {
       color: this.newNoteColor,
-      content: '',
-      positionX: 100 + Math.random() * 200,
-      positionY: 100 + Math.random() * 200,
+      content: "",
+      positionX: 150 + Math.random() * 300 - this.panOffset.x,
+      positionY: 150 + Math.random() * 200 - this.panOffset.y,
     };
 
-    // Add noteType to payload if your API supports it
     (payload as any).noteType = this.newNoteType;
 
     create1(this.http, API_URL, { boardId: this.boardId, body: payload }).subscribe({
-      next: res => {
+      next: (res) => {
         if (res.body) {
           const newNote: NoteWithUI = {
             ...res.body,
             rotation: this.getRandomRotation(),
             zIndex: ++this.maxZIndex,
-            noteType: this.newNoteType
+            noteType: this.newNoteType,
           };
           this.notes.push(newNote);
+          this.selectedNoteId = newNote.id!;
         }
         this.cd.detectChanges();
       },
-      error: err => console.error('Error creating note:', err),
+      error: (err) => console.error("Error creating note:", err),
     });
   }
 
@@ -223,11 +293,11 @@ export class BoardPage implements OnInit, AfterViewInit {
     (payload as any).noteType = note.noteType;
 
     patch1(this.http, API_URL, { boardId: this.boardId, noteId: note.id, body: payload }).subscribe({
-      next: res => {
+      next: (res) => {
         if (res.body) this.replaceNote(res.body);
         this.cd.detectChanges();
       },
-      error: err => console.error('Error updating note:', err),
+      error: (err) => console.error("Error updating note:", err),
     });
   }
 
@@ -238,24 +308,23 @@ export class BoardPage implements OnInit, AfterViewInit {
 
     delete1(this.http, API_URL, { boardId: this.boardId, noteId }).subscribe({
       next: () => {
-        this.notes = this.notes.filter(n => n.id !== noteId);
-        // Also remove any links connected to this note
-        this.links = this.links.filter(l => l.fromNoteId !== noteId && l.toNoteId !== noteId);
+        this.notes = this.notes.filter((n) => n.id !== noteId);
+        this.links = this.links.filter((l) => l.fromNoteId !== noteId && l.toNoteId !== noteId);
         this.selectedNoteId = null;
         this.cd.detectChanges();
       },
-      error: err => console.error('Error deleting note:', err),
+      error: (err) => console.error("Error deleting note:", err),
     });
   }
 
   private replaceNote(updated: NoteResponseDto) {
-    const index = this.notes.findIndex(n => n.id === updated.id);
+    const index = this.notes.findIndex((n) => n.id === updated.id);
     if (index !== -1) {
       this.notes[index] = {
         ...updated,
         rotation: this.notes[index].rotation,
         zIndex: this.notes[index].zIndex,
-        noteType: this.notes[index].noteType
+        noteType: this.notes[index].noteType,
       };
     }
   }
@@ -273,7 +342,6 @@ export class BoardPage implements OnInit, AfterViewInit {
     }
 
     this.selectedNoteId = note.id!;
-    // Bring to front
     note.zIndex = ++this.maxZIndex;
     this.cd.detectChanges();
   }
@@ -293,7 +361,7 @@ export class BoardPage implements OnInit, AfterViewInit {
   }
 
   deselectAll(): void {
-    if (!this.linkMode) {
+    if (!this.linkMode && !this.draggingNote) {
       this.selectedNoteId = null;
       this.editingNoteId = null;
       this.cd.detectChanges();
@@ -301,7 +369,7 @@ export class BoardPage implements OnInit, AfterViewInit {
   }
 
   /* =========================
-     LINKS CRUD
+     LINKS CRUD - IMPROVED
   ========================= */
 
   toggleLinkMode(): void {
@@ -321,21 +389,26 @@ export class BoardPage implements OnInit, AfterViewInit {
       this.cd.detectChanges();
     } else if (this.linkFromNoteId !== noteId) {
       this.createLinkTo(noteId);
+    } else {
+      // Clicked same note, deselect
+      this.linkFromNoteId = null;
+      this.cd.detectChanges();
     }
   }
 
   createLinkTo(noteToId: string): void {
     if (!this.linkFromNoteId) return;
 
-    // Check if link already exists
     const existingLink = this.links.find(
-      l => (l.fromNoteId === this.linkFromNoteId && l.toNoteId === noteToId) ||
+      (l) =>
+        (l.fromNoteId === this.linkFromNoteId && l.toNoteId === noteToId) ||
         (l.fromNoteId === noteToId && l.toNoteId === this.linkFromNoteId)
     );
 
     if (existingLink) {
       this.linkFromNoteId = null;
       this.linkMode = false;
+      this.cd.detectChanges();
       return;
     }
 
@@ -344,14 +417,22 @@ export class BoardPage implements OnInit, AfterViewInit {
       toNoteId: noteToId,
     };
 
+    // Add string color if your API supports it
+    (payload as any).color = this.newStringColor;
+
     createLink(this.http, API_URL, { boardId: this.boardId, body: payload }).subscribe({
-      next: res => {
-        if (res.body) this.links.push(res.body);
+      next: (res) => {
+        if (res.body) {
+          this.links.push({
+            ...res.body,
+            color: this.newStringColor,
+          } as any);
+        }
         this.linkMode = false;
         this.linkFromNoteId = null;
         this.cd.detectChanges();
       },
-      error: err => console.error('Error creating link:', err),
+      error: (err) => console.error("Error creating link:", err),
     });
   }
 
@@ -362,20 +443,24 @@ export class BoardPage implements OnInit, AfterViewInit {
 
     deleteLink(this.http, API_URL, { boardId: this.boardId, linkId }).subscribe({
       next: () => {
-        this.links = this.links.filter(l => l.id !== linkId);
+        this.links = this.links.filter((l) => l.id !== linkId);
         this.cd.detectChanges();
       },
-      error: err => console.error('Error deleting link:', err),
+      error: (err) => console.error("Error deleting link:", err),
     });
   }
 
   /* =========================
-     UPLOAD IMAGE
+     UPLOAD IMAGE - FIXED
   ========================= */
 
-  triggerFileInput(noteId: string): void {
-    const input = document.getElementById('file-input-' + noteId) as HTMLInputElement;
-    if (input) input.click();
+  triggerFileInput(noteId: string, event?: Event): void {
+    if (event) event.stopPropagation();
+    const input = document.getElementById("file-input-" + noteId) as HTMLInputElement;
+    if (input) {
+      input.value = ""; // Reset to allow same file selection
+      input.click();
+    }
   }
 
   uploadNoteImage(event: Event, noteId: string): void {
@@ -384,45 +469,84 @@ export class BoardPage implements OnInit, AfterViewInit {
 
     const file = input.files[0];
 
+    // Validate file type
+    if (!file.type.startsWith("image/")) {
+      console.error("Invalid file type");
+      return;
+    }
+
     uploadImage(this.http, API_URL, { boardId: this.boardId, noteId, body: { file } }).subscribe({
-      next: res => {
-        if (res.body) this.replaceNote(res.body);
+      next: (res) => {
+        if (res.body) {
+          // Update the note with new image URL
+          const noteIndex = this.notes.findIndex((n) => n.id === noteId);
+          if (noteIndex !== -1) {
+            this.notes[noteIndex] = {
+              ...this.notes[noteIndex],
+              ...res.body,
+              imageUrl: res.body.imageUrl, // Ensure imageUrl is set
+            };
+          }
+        }
         this.cd.detectChanges();
       },
-      error: err => console.error('Error uploading image:', err),
+      error: (err) => console.error("Error uploading image:", err),
     });
   }
 
+  // Get proper image URL (handle relative URLs)
+  getImageUrl(imageUrl: string | undefined): string {
+    if (!imageUrl) return "";
+    if (imageUrl.startsWith("http")) return imageUrl;
+    return `${API_URL}${imageUrl.startsWith("/") ? "" : "/"}${imageUrl}`;
+  }
+
   /* =========================
-     DRAG NOTE
+     NATIVE DRAG - MORE EFFICIENT
   ========================= */
 
-  onDragStarted(note: NoteWithUI): void {
+  onNoteMouseDown(event: MouseEvent, note: NoteWithUI): void {
+    if (event.button !== 0) return; // Only left click
+    if (this.editingNoteId === note.id) return; // Don't drag while editing
+
+    event.preventDefault();
+    event.stopPropagation();
+
+    if (this.linkMode) {
+      this.noteClickedForLink(note.id!);
+      return;
+    }
+
+    this.draggingNote = note;
+    note.isDragging = true;
     note.zIndex = ++this.maxZIndex;
     this.selectedNoteId = note.id!;
+
+    // Calculate offset from mouse to note position
+    this.dragOffset = {
+      x: event.clientX - (note.positionX || 0) - this.panOffset.x,
+      y: event.clientY - (note.positionY || 0) - this.panOffset.y,
+    };
+
+    this.cd.detectChanges();
   }
 
-  dragEnded(event: CdkDragEnd, note: NoteWithUI): void {
-    const pos = event.source.getFreeDragPosition();
-    note.positionX = pos.x;
-    note.positionY = pos.y;
-    this.updateNote(note);
-  }
+  private onMouseMove(event: MouseEvent): void {
+    if (this.draggingNote) {
+      // Update note position directly - run outside Angular for performance
+      this.ngZone.runOutsideAngular(() => {
+        const newX = event.clientX - this.dragOffset.x - this.panOffset.x;
+        const newY = event.clientY - this.dragOffset.y - this.panOffset.y;
 
-  /* =========================
-     BOARD PANNING
-  ========================= */
+        this.draggingNote!.positionX = Math.max(0, newX);
+        this.draggingNote!.positionY = Math.max(0, newY);
 
-  onBoardMouseDown(event: MouseEvent): void {
-    if (event.shiftKey) {
-      this.isPanning = true;
-      this.lastPanPoint = { x: event.clientX, y: event.clientY };
-      event.preventDefault();
-    }
-  }
-
-  onBoardMouseMove(event: MouseEvent): void {
-    if (this.isPanning) {
+        // Use requestAnimationFrame for smooth updates
+        requestAnimationFrame(() => {
+          this.cd.detectChanges();
+        });
+      });
+    } else if (this.isPanning) {
       const dx = event.clientX - this.lastPanPoint.x;
       const dy = event.clientY - this.lastPanPoint.y;
       this.panOffset.x += dx;
@@ -432,78 +556,124 @@ export class BoardPage implements OnInit, AfterViewInit {
     }
   }
 
-  onBoardMouseUp(): void {
+  private onMouseUp(event: MouseEvent): void {
+    if (this.draggingNote) {
+      const note = this.draggingNote;
+      note.isDragging = false;
+      this.draggingNote = null;
+
+      // Save position to server
+      this.updateNote(note);
+      this.cd.detectChanges();
+    }
     this.isPanning = false;
   }
 
   /* =========================
-     HELPERS
+     BOARD PANNING
+  ========================= */
+
+  onBoardMouseDown(event: MouseEvent): void {
+    // Only pan with middle mouse button or shift+left click
+    if (event.button === 1 || (event.button === 0 && event.shiftKey)) {
+      this.isPanning = true;
+      this.lastPanPoint = { x: event.clientX, y: event.clientY };
+      event.preventDefault();
+    }
+  }
+
+  /* =========================
+     REGISTER NOTE ELEMENTS FOR LINKS
+  ========================= */
+
+  registerNoteElement(noteId: string, element: HTMLElement): void {
+    this.noteElements.set(noteId, element);
+  }
+
+  /* =========================
+     LINK PATH CALCULATIONS - IMPROVED
   ========================= */
 
   getNoteById(noteId: string): NoteWithUI | undefined {
-    return this.notes.find(n => n.id === noteId);
+    return this.notes.find((n) => n.id === noteId);
   }
 
-  // Calculate note dimensions based on content and type
-  getNoteDimensions(note: NoteWithUI): { width: number; height: number } {
-    const baseWidth = note.noteType === 'photo' ? 180 : 200;
-    const baseHeight = note.noteType === 'photo' ? 220 : 120;
-
-    // Auto-size based on content length
-    const contentLength = (note.content || '').length;
-    const extraHeight = Math.min(Math.floor(contentLength / 30) * 20, 150);
-
-    // Add height for images
-    const imageHeight = note.imageUrl ? 120 : 0;
-
-    return {
-      width: baseWidth,
-      height: baseHeight + extraHeight + imageHeight
-    };
-  }
-
-  // Returns the center X position of a note
-  getNoteCenterX(noteId?: string): number {
+  // Get pin position (top center of card)
+  getPinX(noteId?: string): number {
     const note = noteId ? this.getNoteById(noteId) : undefined;
     if (!note) return 0;
-    const dims = this.getNoteDimensions(note);
-    return (note.positionX || 0) + dims.width / 2 + this.panOffset.x;
+    const width = this.getNoteWidth(note);
+    return (note.positionX || 0) + width / 2 + this.panOffset.x;
   }
 
-  // Returns the center Y position of a note (at the pin location - top center)
-  getNoteCenterY(noteId?: string): number {
+  getPinY(noteId?: string): number {
     const note = noteId ? this.getNoteById(noteId) : undefined;
     if (!note) return 0;
-    return (note.positionY || 0) + 12 + this.panOffset.y; // 12px from top (pin location)
+    return (note.positionY || 0) + 8 + this.panOffset.y; // Pin is 8px from top
   }
 
-  // Get the path for curved string connection
+  getNoteWidth(note: NoteWithUI): number {
+    switch (note.noteType) {
+      case "photo":
+        return 180;
+      case "document":
+        return 220;
+      case "clipping":
+        return 200;
+      case "label":
+        return 120;
+      default:
+        return 200;
+    }
+  }
+
+  // Curved path with natural sag
   getLinkPath(link: LinkResponse): string {
-    const x1 = this.getNoteCenterX(link.fromNoteId);
-    const y1 = this.getNoteCenterY(link.fromNoteId);
-    const x2 = this.getNoteCenterX(link.toNoteId);
-    const y2 = this.getNoteCenterY(link.toNoteId);
+    const x1 = this.getPinX(link.fromNoteId);
+    const y1 = this.getPinY(link.fromNoteId);
+    const x2 = this.getPinX(link.toNoteId);
+    const y2 = this.getPinY(link.toNoteId);
 
-    // Calculate control point for curve (sag effect)
-    const midX = (x1 + x2) / 2;
-    const midY = (y1 + y2) / 2;
+    if (x1 === 0 && y1 === 0) return "";
+    if (x2 === 0 && y2 === 0) return "";
+
+    // Calculate distance and sag
     const distance = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
-    const sag = Math.min(distance * 0.15, 50); // Sag amount based on distance
+    const sag = Math.min(distance * 0.12, 40);
 
-    return `M ${x1} ${y1} Q ${midX} ${midY + sag} ${x2} ${y2}`;
+    // Control point for quadratic curve (below midpoint for sag)
+    const midX = (x1 + x2) / 2;
+    const midY = (y1 + y2) / 2 + sag;
+
+    return `M ${x1} ${y1} Q ${midX} ${midY} ${x2} ${y2}`;
+  }
+
+  // Get string color
+  getStringColor(link: LinkResponse): string {
+    const color = (link as any).color || "red";
+    const colorConfig = this.STRING_COLORS.find((c) => c.value === color);
+    return colorConfig?.hex || "#8b0000";
   }
 
   // Get sticky note color class
   getStickyColorClass(color: string): string {
-    const colorMap: { [key: string]: string } = {
-      'yellow': 'sticky-yellow',
-      'pink': 'sticky-pink',
-      'blue': 'sticky-blue',
-      'green': 'sticky-green',
-      'purple': 'sticky-pink', // Map old purple to pink
-    };
-    return colorMap[color] || 'sticky-yellow';
+    const colorConfig = this.STICKY_COLORS.find((c) => c.value === color);
+    return colorConfig?.class || "sticky-yellow";
   }
+
+  /* =========================
+     CHANGE NOTE COLOR
+  ========================= */
+
+  changeNoteColor(note: NoteWithUI, color: string, event?: Event): void {
+    if (event) event.stopPropagation();
+    note.color = color;
+    this.updateNote(note);
+  }
+
+  /* =========================
+     TRACKBY FUNCTIONS
+  ========================= */
 
   trackByNoteId(index: number, note: NoteWithUI): string {
     return note.id || index.toString();

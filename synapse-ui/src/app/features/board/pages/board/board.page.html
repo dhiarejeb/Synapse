@@ -1,0 +1,478 @@
+<div class="board-container"
+     (mousedown)="onBoardMouseDown($event)"
+     (click)="deselectAll()">
+
+  <!-- Wooden Frame -->
+  <div class="board-frame">
+    <div class="board-surface" [class.panning]="isPanning">
+
+      <!-- ===================== TOOLBAR ===================== -->
+      <div class="toolbar" (click)="$event.stopPropagation()">
+        <div class="toolbar-inner">
+          <!-- Type Selector -->
+          <div class="toolbar-group">
+            <label class="toolbar-label">Type:</label>
+            <div class="type-picker">
+              <button *ngFor="let type of NOTE_TYPES"
+                      class="type-btn"
+                      [class.active]="newNoteType === type.value"
+                      (click)="newNoteType = type.value"
+                      [title]="type.label">
+                {{ type.icon }}
+              </button>
+            </div>
+          </div>
+
+          <!-- Color Picker (for sticky notes) -->
+          <div class="toolbar-group" *ngIf="newNoteType === 'sticky'">
+            <label class="toolbar-label">Color:</label>
+            <div class="color-picker">
+              <button *ngFor="let color of STICKY_COLORS"
+                      class="color-btn"
+                      [style.background]="color.hex"
+                      [class.active]="newNoteColor === color.value"
+                      (click)="newNoteColor = color.value"
+                      [title]="color.label">
+              </button>
+            </div>
+          </div>
+
+          <!-- Add Button -->
+          <button class="toolbar-btn add-btn" (click)="createNote()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <line x1="12" y1="5" x2="12" y2="19"/>
+              <line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+            Add
+          </button>
+
+          <div class="toolbar-divider"></div>
+
+          <!-- String Color Picker -->
+          <div class="toolbar-group" *ngIf="!linkMode">
+            <label class="toolbar-label">String:</label>
+            <div class="color-picker string-colors">
+              <button *ngFor="let color of STRING_COLORS"
+                      class="color-btn small"
+                      [style.background]="color.hex"
+                      [class.active]="newStringColor === color.value"
+                      (click)="newStringColor = color.value"
+                      [title]="color.label">
+              </button>
+            </div>
+          </div>
+
+          <!-- Connect Button -->
+          <button class="toolbar-btn link-btn"
+                  [class.active]="linkMode"
+                  (click)="toggleLinkMode()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+              <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+            </svg>
+            {{ linkMode ? 'Cancel' : 'Connect' }}
+          </button>
+
+          <!-- Link Mode Hints -->
+          <span class="toolbar-hint" *ngIf="linkMode && !linkFromNoteId">
+            Click first card...
+          </span>
+          <span class="toolbar-hint success" *ngIf="linkMode && linkFromNoteId">
+            Now click second card
+          </span>
+        </div>
+      </div>
+
+      <!-- ===================== NOTES WRAPPER ===================== -->
+      <div class="notes-wrapper"
+           #notesWrapper
+           [style.transform]="'translate(' + panOffset.x + 'px, ' + panOffset.y + 'px)'">
+
+        <!-- ===================== STRING CONNECTIONS ===================== -->
+        <svg class="links-svg"
+             [style.transform]="'translate(' + (-panOffset.x) + 'px, ' + (-panOffset.y) + 'px)'"
+             [attr.width]="4000"
+             [attr.height]="4000">
+          <defs>
+            <filter id="string-shadow" x="-20%" y="-20%" width="140%" height="140%">
+              <feDropShadow dx="0" dy="1" stdDeviation="1" flood-opacity="0.3"/>
+            </filter>
+          </defs>
+
+          <g *ngFor="let link of links; trackBy: trackByLinkId" class="link-group">
+            <!-- String with curve -->
+            <path [attr.d]="getLinkPath(link)"
+                  class="link-string"
+                  fill="none"
+                  [attr.stroke]="getStringColor(link)"
+                  stroke-width="2.5"
+                  stroke-linecap="round"
+                  filter="url(#string-shadow)"
+                  (click)="deleteLinkById(link.id!, $event)">
+            </path>
+
+            <!-- Pin at start -->
+            <circle [attr.cx]="getPinX(link.fromNoteId)"
+                    [attr.cy]="getPinY(link.fromNoteId)"
+                    r="7"
+                    class="link-pin"
+                    fill="#c41e3a"/>
+            <circle [attr.cx]="getPinX(link.fromNoteId)"
+                    [attr.cy]="getPinY(link.fromNoteId)"
+                    r="2.5"
+                    fill="#ffb6c1"
+                    class="pin-highlight"/>
+
+            <!-- Pin at end -->
+            <circle [attr.cx]="getPinX(link.toNoteId)"
+                    [attr.cy]="getPinY(link.toNoteId)"
+                    r="7"
+                    class="link-pin"
+                    fill="#c41e3a"/>
+            <circle [attr.cx]="getPinX(link.toNoteId)"
+                    [attr.cy]="getPinY(link.toNoteId)"
+                    r="2.5"
+                    fill="#ffb6c1"
+                    class="pin-highlight"/>
+
+            <!-- Delete hint on hover -->
+            <text [attr.x]="(getPinX(link.fromNoteId) + getPinX(link.toNoteId)) / 2"
+                  [attr.y]="(getPinY(link.fromNoteId) + getPinY(link.toNoteId)) / 2 + 25"
+                  class="link-delete-hint"
+                  text-anchor="middle">
+              Click to remove
+            </text>
+          </g>
+        </svg>
+
+        <!-- ===================== CARDS ===================== -->
+        <ng-container *ngFor="let note of notes; trackBy: trackByNoteId">
+
+          <!-- ==================== STICKY NOTE ==================== -->
+          <div *ngIf="note.noteType === 'sticky' || !note.noteType"
+               class="card sticky-note"
+               [class]="getStickyColorClass(note.color || 'yellow')"
+               [class.selected]="selectedNoteId === note.id"
+               [class.link-source]="linkFromNoteId === note.id"
+               [class.link-mode]="linkMode"
+               [class.dragging]="note.isDragging"
+               [ngStyle]="{
+                 'left.px': note.positionX,
+                 'top.px': note.positionY,
+                 'z-index': note.zIndex,
+                 'transform': 'rotate(' + (note.rotation || 0) + 'deg)'
+               }"
+               (mousedown)="onNoteMouseDown($event, note)"
+               (dblclick)="startEditing(note, $event)">
+
+            <!-- Push Pin -->
+            <div class="push-pin">
+              <div class="pin-head"></div>
+              <div class="pin-point"></div>
+            </div>
+
+            <!-- Content -->
+            <div class="card-content">
+              <textarea *ngIf="editingNoteId === note.id"
+                        [(ngModel)]="note.content"
+                        (blur)="stopEditing(note)"
+                        (click)="$event.stopPropagation()"
+                        (mousedown)="$event.stopPropagation()"
+                        class="note-textarea"
+                        placeholder="Write something..."
+                        autofocus></textarea>
+              <p *ngIf="editingNoteId !== note.id" class="note-text">
+                {{ note.content || 'Double-click to edit...' }}
+              </p>
+
+              <!-- Image Display - FIXED -->
+              <img *ngIf="note.imageUrl"
+                   [src]="getImageUrl(note.imageUrl)"
+                   alt="Note attachment"
+                   class="note-image"
+                   (error)="note.imageUrl = ''" />
+            </div>
+
+            <!-- Actions -->
+            <div class="card-actions" *ngIf="selectedNoteId === note.id && !linkMode">
+              <!-- Color Change -->
+              <div class="color-change-row">
+                <button *ngFor="let color of STICKY_COLORS.slice(0, 4)"
+                        class="mini-color-btn"
+                        [style.background]="color.hex"
+                        [class.active]="note.color === color.value"
+                        (click)="changeNoteColor(note, color.value, $event)">
+                </button>
+              </div>
+              <div class="action-row">
+                <button class="action-btn upload-btn" (click)="triggerFileInput(note.id!, $event)" title="Upload image">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                    <polyline points="17 8 12 3 7 8"/>
+                    <line x1="12" y1="3" x2="12" y2="15"/>
+                  </svg>
+                </button>
+                <button class="action-btn delete-btn" (click)="deleteNote(note.id!, $event)" title="Delete">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="3 6 5 6 21 6"/>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                  </svg>
+                </button>
+              </div>
+              <input type="file"
+                     [id]="'file-input-' + note.id"
+                     (change)="uploadNoteImage($event, note.id!)"
+                     accept="image/*"
+                     style="display: none" />
+            </div>
+          </div>
+
+          <!-- ==================== PHOTO CARD ==================== -->
+          <div *ngIf="note.noteType === 'photo'"
+               class="card photo-card"
+               [class.selected]="selectedNoteId === note.id"
+               [class.link-source]="linkFromNoteId === note.id"
+               [class.link-mode]="linkMode"
+               [class.dragging]="note.isDragging"
+               [ngStyle]="{
+                 'left.px': note.positionX,
+                 'top.px': note.positionY,
+                 'z-index': note.zIndex,
+                 'transform': 'rotate(' + (note.rotation || 0) + 'deg)'
+               }"
+               (mousedown)="onNoteMouseDown($event, note)"
+               (dblclick)="startEditing(note, $event)">
+
+            <div class="push-pin">
+              <div class="pin-head"></div>
+              <div class="pin-point"></div>
+            </div>
+
+            <div class="photo-frame">
+              <!-- Empty photo placeholder -->
+              <div class="photo-placeholder" *ngIf="!note.imageUrl" (click)="triggerFileInput(note.id!, $event)">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                  <circle cx="8.5" cy="8.5" r="1.5"/>
+                  <polyline points="21 15 16 10 5 21"/>
+                </svg>
+                <span>Click to add photo</span>
+              </div>
+              <!-- Photo display - FIXED -->
+              <img *ngIf="note.imageUrl"
+                   [src]="getImageUrl(note.imageUrl)"
+                   alt="Photo"
+                   class="photo-image"
+                   (error)="note.imageUrl = ''" />
+            </div>
+
+            <div class="photo-caption">
+              <textarea *ngIf="editingNoteId === note.id"
+                        [(ngModel)]="note.content"
+                        (blur)="stopEditing(note)"
+                        (click)="$event.stopPropagation()"
+                        (mousedown)="$event.stopPropagation()"
+                        class="caption-textarea"
+                        placeholder="Add caption..."
+                        autofocus></textarea>
+              <p *ngIf="editingNoteId !== note.id" class="caption-text">
+                {{ note.content || 'Add caption...' }}
+              </p>
+            </div>
+
+            <div class="card-actions" *ngIf="selectedNoteId === note.id && !linkMode">
+              <div class="action-row">
+                <button class="action-btn upload-btn" (click)="triggerFileInput(note.id!, $event)" title="Change photo">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                    <polyline points="17 8 12 3 7 8"/>
+                    <line x1="12" y1="3" x2="12" y2="15"/>
+                  </svg>
+                </button>
+                <button class="action-btn delete-btn" (click)="deleteNote(note.id!, $event)" title="Delete">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="3 6 5 6 21 6"/>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                  </svg>
+                </button>
+              </div>
+              <input type="file"
+                     [id]="'file-input-' + note.id"
+                     (change)="uploadNoteImage($event, note.id!)"
+                     accept="image/*"
+                     style="display: none" />
+            </div>
+          </div>
+
+          <!-- ==================== DOCUMENT CARD ==================== -->
+          <div *ngIf="note.noteType === 'document'"
+               class="card document-card"
+               [class.selected]="selectedNoteId === note.id"
+               [class.link-source]="linkFromNoteId === note.id"
+               [class.link-mode]="linkMode"
+               [class.dragging]="note.isDragging"
+               [ngStyle]="{
+                 'left.px': note.positionX,
+                 'top.px': note.positionY,
+                 'z-index': note.zIndex,
+                 'transform': 'rotate(' + (note.rotation || 0) + 'deg)'
+               }"
+               (mousedown)="onNoteMouseDown($event, note)"
+               (dblclick)="startEditing(note, $event)">
+
+            <div class="push-pin">
+              <div class="pin-head"></div>
+              <div class="pin-point"></div>
+            </div>
+
+            <div class="document-content">
+              <div class="document-lines"></div>
+              <div class="document-margin"></div>
+              <textarea *ngIf="editingNoteId === note.id"
+                        [(ngModel)]="note.content"
+                        (blur)="stopEditing(note)"
+                        (click)="$event.stopPropagation()"
+                        (mousedown)="$event.stopPropagation()"
+                        class="document-textarea"
+                        placeholder="Type document content..."
+                        autofocus></textarea>
+              <p *ngIf="editingNoteId !== note.id" class="document-text">
+                {{ note.content || 'Double-click to add content...' }}
+              </p>
+            </div>
+
+            <div class="card-actions" *ngIf="selectedNoteId === note.id && !linkMode">
+              <div class="action-row">
+                <button class="action-btn delete-btn" (click)="deleteNote(note.id!, $event)" title="Delete">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="3 6 5 6 21 6"/>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- ==================== CLIPPING CARD ==================== -->
+          <div *ngIf="note.noteType === 'clipping'"
+               class="card clipping-card"
+               [class.selected]="selectedNoteId === note.id"
+               [class.link-source]="linkFromNoteId === note.id"
+               [class.link-mode]="linkMode"
+               [class.dragging]="note.isDragging"
+               [ngStyle]="{
+                 'left.px': note.positionX,
+                 'top.px': note.positionY,
+                 'z-index': note.zIndex,
+                 'transform': 'rotate(' + (note.rotation || 0) + 'deg)'
+               }"
+               (mousedown)="onNoteMouseDown($event, note)"
+               (dblclick)="startEditing(note, $event)">
+
+            <div class="push-pin">
+              <div class="pin-head"></div>
+              <div class="pin-point"></div>
+            </div>
+
+            <div class="clipping-content">
+              <div class="clipping-header">EVIDENCE</div>
+              <textarea *ngIf="editingNoteId === note.id"
+                        [(ngModel)]="note.content"
+                        (blur)="stopEditing(note)"
+                        (click)="$event.stopPropagation()"
+                        (mousedown)="$event.stopPropagation()"
+                        class="clipping-textarea"
+                        placeholder="Clipping content..."
+                        autofocus></textarea>
+              <p *ngIf="editingNoteId !== note.id" class="clipping-text">
+                {{ note.content || 'Double-click to add content...' }}
+              </p>
+
+              <img *ngIf="note.imageUrl"
+                   [src]="getImageUrl(note.imageUrl)"
+                   alt="Evidence"
+                   class="clipping-image"
+                   (error)="note.imageUrl = ''" />
+            </div>
+
+            <div class="card-actions" *ngIf="selectedNoteId === note.id && !linkMode">
+              <div class="action-row">
+                <button class="action-btn upload-btn" (click)="triggerFileInput(note.id!, $event)" title="Add image">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                    <polyline points="17 8 12 3 7 8"/>
+                    <line x1="12" y1="3" x2="12" y2="15"/>
+                  </svg>
+                </button>
+                <button class="action-btn delete-btn" (click)="deleteNote(note.id!, $event)" title="Delete">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="3 6 5 6 21 6"/>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                  </svg>
+                </button>
+              </div>
+              <input type="file"
+                     [id]="'file-input-' + note.id"
+                     (change)="uploadNoteImage($event, note.id!)"
+                     accept="image/*"
+                     style="display: none" />
+            </div>
+          </div>
+
+          <!-- ==================== LABEL CARD (NEW) ==================== -->
+          <div *ngIf="note.noteType === 'label'"
+               class="card label-card"
+               [class.selected]="selectedNoteId === note.id"
+               [class.link-source]="linkFromNoteId === note.id"
+               [class.link-mode]="linkMode"
+               [class.dragging]="note.isDragging"
+               [ngStyle]="{
+                 'left.px': note.positionX,
+                 'top.px': note.positionY,
+                 'z-index': note.zIndex,
+                 'transform': 'rotate(' + (note.rotation || 0) + 'deg)'
+               }"
+               (mousedown)="onNoteMouseDown($event, note)"
+               (dblclick)="startEditing(note, $event)">
+
+            <div class="push-pin small">
+              <div class="pin-head"></div>
+              <div class="pin-point"></div>
+            </div>
+
+            <div class="label-content">
+              <input *ngIf="editingNoteId === note.id"
+                     type="text"
+                     [(ngModel)]="note.content"
+                     (blur)="stopEditing(note)"
+                     (keyup.enter)="stopEditing(note)"
+                     (click)="$event.stopPropagation()"
+                     (mousedown)="$event.stopPropagation()"
+                     class="label-input"
+                     placeholder="Label..."
+                     autofocus />
+              <span *ngIf="editingNoteId !== note.id" class="label-text">
+                {{ note.content || '???' }}
+              </span>
+            </div>
+
+            <div class="card-actions small" *ngIf="selectedNoteId === note.id && !linkMode">
+              <button class="action-btn delete-btn small" (click)="deleteNote(note.id!, $event)" title="Delete">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="18" y1="6" x2="6" y2="18"/>
+                  <line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+        </ng-container>
+      </div>
+
+      <!-- Pan hint -->
+      <div class="pan-hint">
+        <kbd>Shift</kbd> + Drag to pan &nbsp;|&nbsp; <kbd>Delete</kbd> to remove selected
+      </div>
+    </div>
+  </div>
+</div>
