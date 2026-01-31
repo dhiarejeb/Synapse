@@ -1,9 +1,9 @@
 // =============================================
-// DETECTIVE BOARD - ENHANCED STYLES V2
+// DETECTIVE BOARD - ENHANCED STYLES V3
+// Full-featured with zoom, resize, more types
 // =============================================
 
-// Import Google Fonts
-@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400;500;600;700&family=Special+Elite&family=Permanent+Marker&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400;500;600;700&family=Special+Elite&family=Permanent+Marker&family=Courier+Prime&display=swap');
 
 // Color Variables
 $cork-light: #c9a66b;
@@ -16,7 +16,7 @@ $pin-highlight: #ffb6c1;
 $paper-white: #f8f6f1;
 $paper-cream: #f5f0e1;
 
-// Extended sticky colors
+// Extended sticky colors (12 total)
 $sticky-yellow: #fff59d;
 $sticky-pink: #f8bbd9;
 $sticky-blue: #b3e5fc;
@@ -25,22 +25,26 @@ $sticky-orange: #ffcc80;
 $sticky-purple: #d1c4e9;
 $sticky-coral: #ffab91;
 $sticky-mint: #b2dfdb;
+$sticky-lavender: #e1bee7;
+$sticky-peach: #ffe0b2;
+$sticky-sky: #b2ebf2;
+$sticky-lime: #dcedc8;
 
 // =============================================
 // MAIN CONTAINER
 // =============================================
 
 .board-container {
-  width: 100%;
+  width: 100vw;
   height: 100vh;
   background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f0f23 100%);
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 20px;
-  box-sizing: border-box;
   overflow: hidden;
   user-select: none;
+  position: fixed;
+  inset: 0;
 }
 
 // =============================================
@@ -48,13 +52,11 @@ $sticky-mint: #b2dfdb;
 // =============================================
 
 .board-frame {
-  width: 100%;
-  height: 100%;
-  max-width: 1800px;
-  max-height: 1000px;
+  width: calc(100% - 32px);
+  height: calc(100% - 32px);
   background: linear-gradient(180deg, $wood-frame-light 0%, $wood-frame 50%, darken($wood-frame, 5%) 100%);
   border-radius: 8px;
-  padding: 16px;
+  padding: 12px;
   box-shadow:
     0 25px 80px rgba(0, 0, 0, 0.6),
     inset 0 2px 4px rgba(255, 255, 255, 0.1),
@@ -78,7 +80,7 @@ $sticky-mint: #b2dfdb;
 }
 
 // =============================================
-// BOARD SURFACE (Cork)
+// BOARD SURFACE (Cork) - Infinite Canvas
 // =============================================
 
 .board-surface {
@@ -97,6 +99,11 @@ $sticky-mint: #b2dfdb;
     cursor: grabbing;
   }
 
+  &.link-mode-active {
+    cursor: crosshair;
+  }
+
+  // Cork texture
   &::before {
     content: '';
     position: absolute;
@@ -106,11 +113,12 @@ $sticky-mint: #b2dfdb;
     pointer-events: none;
   }
 
+  // Vignette
   &::after {
     content: '';
     position: absolute;
     inset: 0;
-    background: radial-gradient(ellipse at center, transparent 30%, rgba(0, 0, 0, 0.35) 100%);
+    background: radial-gradient(ellipse at center, transparent 40%, rgba(0, 0, 0, 0.3) 100%);
     pointer-events: none;
   }
 }
@@ -130,11 +138,11 @@ $sticky-mint: #b2dfdb;
 .toolbar-inner {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 12px;
   background: rgba(20, 20, 30, 0.95);
   backdrop-filter: blur(12px);
-  padding: 10px 20px;
-  border-radius: 14px;
+  padding: 8px 16px;
+  border-radius: 12px;
   box-shadow:
     0 10px 40px rgba(0, 0, 0, 0.4),
     inset 0 1px 0 rgba(255, 255, 255, 0.1);
@@ -144,11 +152,11 @@ $sticky-mint: #b2dfdb;
 .toolbar-group {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
 }
 
 .toolbar-label {
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 600;
   color: rgba(255, 255, 255, 0.5);
   text-transform: uppercase;
@@ -157,16 +165,16 @@ $sticky-mint: #b2dfdb;
 
 .type-picker {
   display: flex;
-  gap: 4px;
+  gap: 2px;
 }
 
 .type-btn {
-  width: 32px;
-  height: 32px;
-  border-radius: 8px;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
   border: 1px solid transparent;
   background: rgba(255, 255, 255, 0.05);
-  font-size: 16px;
+  font-size: 14px;
   cursor: pointer;
   transition: all 0.2s ease;
   display: flex;
@@ -187,16 +195,24 @@ $sticky-mint: #b2dfdb;
 
 .color-picker {
   display: flex;
-  gap: 5px;
+  gap: 4px;
 
   &.string-colors {
-    gap: 4px;
+    gap: 3px;
   }
 }
 
+.color-picker-more {
+  display: flex;
+  gap: 3px;
+  margin-left: 4px;
+  padding-left: 4px;
+  border-left: 1px solid rgba(255, 255, 255, 0.1);
+}
+
 .color-btn {
-  width: 22px;
-  height: 22px;
+  width: 20px;
+  height: 20px;
   border-radius: 50%;
   border: 2px solid transparent;
   cursor: pointer;
@@ -214,19 +230,19 @@ $sticky-mint: #b2dfdb;
   }
 
   &.small {
-    width: 18px;
-    height: 18px;
+    width: 16px;
+    height: 16px;
   }
 }
 
 .toolbar-btn {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 8px 14px;
-  border-radius: 8px;
+  gap: 5px;
+  padding: 6px 12px;
+  border-radius: 6px;
   border: none;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -239,10 +255,6 @@ $sticky-mint: #b2dfdb;
     &:hover {
       transform: translateY(-1px);
       box-shadow: 0 4px 12px rgba($pin-red, 0.5);
-    }
-
-    &:active {
-      transform: translateY(0);
     }
   }
 
@@ -265,12 +277,12 @@ $sticky-mint: #b2dfdb;
 
 .toolbar-divider {
   width: 1px;
-  height: 28px;
+  height: 24px;
   background: rgba(255, 255, 255, 0.15);
 }
 
 .toolbar-hint {
-  font-size: 12px;
+  font-size: 11px;
   color: #ff6b6b;
   font-weight: 500;
   animation: pulse 1.5s ease-in-out infinite;
@@ -286,12 +298,65 @@ $sticky-mint: #b2dfdb;
 }
 
 // =============================================
-// NOTES WRAPPER
+// ZOOM CONTROLS
+// =============================================
+
+.zoom-controls {
+  position: absolute;
+  bottom: 60px;
+  right: 16px;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(20, 20, 30, 0.9);
+  backdrop-filter: blur(8px);
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.zoom-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  border: none;
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.8);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+  }
+}
+
+.zoom-level {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.8);
+  min-width: 45px;
+  text-align: center;
+  cursor: pointer;
+
+  &:hover {
+    color: white;
+  }
+}
+
+// =============================================
+// NOTES WRAPPER - Infinite Canvas
 // =============================================
 
 .notes-wrapper {
   position: absolute;
-  inset: 0;
+  top: 0;
+  left: 0;
+  transform-origin: 0 0;
   will-change: transform;
 }
 
@@ -315,12 +380,10 @@ $sticky-mint: #b2dfdb;
     transition: stroke-width 0.15s ease, opacity 0.15s ease;
 
     &:hover {
-      stroke-width: 4;
-      opacity: 0.8;
+      opacity: 0.7;
 
-      & + .link-pin,
-      & ~ .link-pin {
-        transform: scale(1.4);
+      & ~ .link-delete-hint {
+        opacity: 1;
       }
     }
   }
@@ -328,18 +391,20 @@ $sticky-mint: #b2dfdb;
   .link-pin {
     filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.4));
     transition: r 0.15s ease;
+    pointer-events: none;
   }
 
   .pin-highlight {
     opacity: 0.9;
+    pointer-events: none;
   }
 
   .link-delete-hint {
-    font-size: 10px;
-    fill: rgba(255, 255, 255, 0.9);
+    fill: rgba(255, 255, 255, 0.95);
     opacity: 0;
     transition: opacity 0.2s ease;
     pointer-events: none;
+    font-weight: 500;
     text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
   }
 }
@@ -352,12 +417,16 @@ $sticky-mint: #b2dfdb;
   position: absolute;
   cursor: grab;
   transition: box-shadow 0.15s ease;
-  will-change: transform, left, top;
+  will-change: transform, left, top, width, height;
 
   &:active,
   &.dragging {
     cursor: grabbing;
-    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35) !important;
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.4) !important;
+  }
+
+  &.resizing {
+    cursor: se-resize;
   }
 
   &.selected {
@@ -376,7 +445,8 @@ $sticky-mint: #b2dfdb;
     cursor: crosshair;
 
     &:hover {
-      transform: scale(1.02);
+      transform: scale(1.03) rotate(var(--rotation, 0deg));
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
     }
   }
 
@@ -388,7 +458,7 @@ $sticky-mint: #b2dfdb;
       border: 3px dashed $pin-red;
       border-radius: inherit;
       pointer-events: none;
-      animation: dash-rotate 1s linear infinite;
+      animation: dash-move 0.5s linear infinite;
     }
   }
 }
@@ -398,8 +468,37 @@ $sticky-mint: #b2dfdb;
   50% { box-shadow: 0 0 15px 5px rgba($pin-red, 0.2); }
 }
 
-@keyframes dash-rotate {
+@keyframes dash-move {
   to { stroke-dashoffset: -20; }
+}
+
+// =============================================
+// RESIZE HANDLE
+// =============================================
+
+.resize-handle {
+  position: absolute;
+  bottom: 2px;
+  right: 2px;
+  width: 16px;
+  height: 16px;
+  cursor: se-resize;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(0, 0, 0, 0.3);
+  opacity: 0;
+  transition: opacity 0.2s ease, color 0.2s ease;
+  z-index: 10;
+
+  .card:hover &,
+  .card.selected & {
+    opacity: 1;
+  }
+
+  &:hover {
+    color: rgba(0, 0, 0, 0.6);
+  }
 }
 
 // =============================================
@@ -475,10 +574,10 @@ $sticky-mint: #b2dfdb;
 // =============================================
 
 .sticky-note {
-  min-width: 180px;
-  max-width: 260px;
-  min-height: 100px;
-  padding: 28px 16px 16px;
+  min-width: 140px;
+  max-width: 400px;
+  min-height: 80px;
+  padding: 28px 14px 14px;
   border-radius: 2px;
   box-shadow:
     3px 3px 12px rgba(0, 0, 0, 0.25),
@@ -493,6 +592,10 @@ $sticky-mint: #b2dfdb;
   &.sticky-purple { background: linear-gradient(145deg, $sticky-purple 0%, darken($sticky-purple, 8%) 100%); }
   &.sticky-coral { background: linear-gradient(145deg, $sticky-coral 0%, darken($sticky-coral, 8%) 100%); }
   &.sticky-mint { background: linear-gradient(145deg, $sticky-mint 0%, darken($sticky-mint, 8%) 100%); }
+  &.sticky-lavender { background: linear-gradient(145deg, $sticky-lavender 0%, darken($sticky-lavender, 8%) 100%); }
+  &.sticky-peach { background: linear-gradient(145deg, $sticky-peach 0%, darken($sticky-peach, 8%) 100%); }
+  &.sticky-sky { background: linear-gradient(145deg, $sticky-sky 0%, darken($sticky-sky, 8%) 100%); }
+  &.sticky-lime { background: linear-gradient(145deg, $sticky-lime 0%, darken($sticky-lime, 8%) 100%); }
 
   // Folded corner
   &::before {
@@ -500,25 +603,27 @@ $sticky-mint: #b2dfdb;
     position: absolute;
     bottom: 0;
     right: 0;
-    width: 25px;
-    height: 25px;
+    width: 20px;
+    height: 20px;
     background: linear-gradient(135deg, transparent 50%, rgba(0, 0, 0, 0.08) 50%);
   }
 
   .card-content {
     font-family: 'Caveat', cursive;
+    height: 100%;
   }
 
   .note-textarea {
     width: 100%;
-    min-height: 60px;
+    min-height: 50px;
+    height: calc(100% - 10px);
     border: none;
     background: transparent;
     font-family: 'Caveat', cursive;
-    font-size: 22px;
+    font-size: 20px;
     line-height: 1.3;
     color: #2a2a2a;
-    resize: vertical;
+    resize: none;
     outline: none;
 
     &::placeholder {
@@ -528,7 +633,7 @@ $sticky-mint: #b2dfdb;
 
   .note-text {
     font-family: 'Caveat', cursive;
-    font-size: 22px;
+    font-size: 20px;
     line-height: 1.3;
     color: #2a2a2a;
     margin: 0;
@@ -539,10 +644,10 @@ $sticky-mint: #b2dfdb;
 
   .note-image {
     width: 100%;
-    max-height: 160px;
+    max-height: 200px;
     object-fit: cover;
     border-radius: 4px;
-    margin-top: 12px;
+    margin-top: 10px;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
   }
 }
@@ -601,7 +706,7 @@ $sticky-mint: #b2dfdb;
 
   .photo-caption {
     text-align: center;
-    min-height: 28px;
+    min-height: 24px;
   }
 
   .caption-textarea {
@@ -609,7 +714,7 @@ $sticky-mint: #b2dfdb;
     border: none;
     background: transparent;
     font-family: 'Caveat', cursive;
-    font-size: 16px;
+    font-size: 15px;
     text-align: center;
     color: #333;
     resize: none;
@@ -622,7 +727,7 @@ $sticky-mint: #b2dfdb;
 
   .caption-text {
     font-family: 'Caveat', cursive;
-    font-size: 16px;
+    font-size: 15px;
     color: #555;
     margin: 0;
   }
@@ -634,7 +739,7 @@ $sticky-mint: #b2dfdb;
 
 .document-card {
   width: 220px;
-  min-height: 160px;
+  min-height: 150px;
   background: $paper-white;
   border-radius: 2px;
   box-shadow:
@@ -644,8 +749,9 @@ $sticky-mint: #b2dfdb;
 
   .document-content {
     position: relative;
-    padding: 28px 16px 16px 44px;
-    min-height: 130px;
+    padding: 28px 14px 14px 40px;
+    min-height: 120px;
+    height: 100%;
   }
 
   .document-lines {
@@ -653,16 +759,16 @@ $sticky-mint: #b2dfdb;
     inset: 0;
     background: repeating-linear-gradient(
         transparent,
-        transparent 23px,
-        #c9e1f5 23px,
-        #c9e1f5 24px
+        transparent 21px,
+        #c9e1f5 21px,
+        #c9e1f5 22px
     );
     pointer-events: none;
   }
 
   .document-margin {
     position: absolute;
-    left: 36px;
+    left: 34px;
     top: 0;
     bottom: 0;
     width: 1px;
@@ -672,14 +778,15 @@ $sticky-mint: #b2dfdb;
 
   .document-textarea {
     width: 100%;
-    min-height: 110px;
+    min-height: 100px;
+    height: calc(100% - 30px);
     border: none;
     background: transparent;
-    font-family: 'Special Elite', 'Courier New', monospace;
-    font-size: 13px;
-    line-height: 24px;
+    font-family: 'Courier Prime', 'Courier New', monospace;
+    font-size: 12px;
+    line-height: 22px;
     color: #222;
-    resize: vertical;
+    resize: none;
     outline: none;
     position: relative;
     z-index: 1;
@@ -690,9 +797,9 @@ $sticky-mint: #b2dfdb;
   }
 
   .document-text {
-    font-family: 'Special Elite', 'Courier New', monospace;
-    font-size: 13px;
-    line-height: 24px;
+    font-family: 'Courier Prime', 'Courier New', monospace;
+    font-size: 12px;
+    line-height: 22px;
     color: #222;
     margin: 0;
     white-space: pre-wrap;
@@ -724,31 +831,31 @@ $sticky-mint: #b2dfdb;
   );
 
   .clipping-content {
-    padding: 28px 16px 16px;
+    padding: 28px 14px 14px;
   }
 
   .clipping-header {
     font-family: 'Times New Roman', serif;
-    font-size: 11px;
+    font-size: 10px;
     font-weight: bold;
     text-transform: uppercase;
     letter-spacing: 3px;
     color: #555;
     border-bottom: 2px solid #222;
-    padding-bottom: 6px;
-    margin-bottom: 12px;
+    padding-bottom: 5px;
+    margin-bottom: 10px;
   }
 
   .clipping-textarea {
     width: 100%;
-    min-height: 50px;
+    min-height: 40px;
     border: none;
     background: transparent;
     font-family: 'Times New Roman', serif;
-    font-size: 14px;
-    line-height: 1.5;
+    font-size: 13px;
+    line-height: 1.4;
     color: #1a1a1a;
-    resize: vertical;
+    resize: none;
     outline: none;
 
     &::placeholder {
@@ -758,8 +865,8 @@ $sticky-mint: #b2dfdb;
 
   .clipping-text {
     font-family: 'Times New Roman', serif;
-    font-size: 14px;
-    line-height: 1.5;
+    font-size: 13px;
+    line-height: 1.4;
     color: #1a1a1a;
     margin: 0;
     white-space: pre-wrap;
@@ -768,37 +875,37 @@ $sticky-mint: #b2dfdb;
 
   .clipping-image {
     width: 100%;
-    max-height: 120px;
+    max-height: 100px;
     object-fit: cover;
-    margin-top: 12px;
+    margin-top: 10px;
     filter: grayscale(40%) contrast(110%) sepia(10%);
     border: 1px solid #ccc;
   }
 }
 
 // =============================================
-// LABEL CARD (NEW)
+// LABEL CARD
 // =============================================
 
 .label-card {
-  min-width: 80px;
-  max-width: 160px;
+  min-width: 70px;
+  max-width: 150px;
   background: $paper-cream;
-  padding: 16px 14px 10px;
+  padding: 14px 12px 8px;
   border-radius: 2px;
   box-shadow:
     2px 2px 8px rgba(0, 0, 0, 0.2),
     0 0 1px rgba(0, 0, 0, 0.1);
 
-  // Tape effect on top
+  // Tape effect
   &::before {
     content: '';
     position: absolute;
-    top: -4px;
+    top: -3px;
     left: 50%;
     transform: translateX(-50%);
-    width: 50px;
-    height: 18px;
+    width: 40px;
+    height: 16px;
     background: rgba(255, 255, 200, 0.6);
     border-radius: 2px;
     z-index: 5;
@@ -813,7 +920,7 @@ $sticky-mint: #b2dfdb;
     border: none;
     background: transparent;
     font-family: 'Permanent Marker', cursive;
-    font-size: 16px;
+    font-size: 14px;
     text-align: center;
     color: $pin-red;
     outline: none;
@@ -825,9 +932,180 @@ $sticky-mint: #b2dfdb;
 
   .label-text {
     font-family: 'Permanent Marker', cursive;
-    font-size: 16px;
+    font-size: 14px;
     color: $pin-red;
     margin: 0;
+  }
+}
+
+// =============================================
+// INDEX CARD (NEW)
+// =============================================
+
+.index-card {
+  width: 280px;
+  min-height: 160px;
+  border-radius: 3px;
+  box-shadow:
+    3px 3px 12px rgba(0, 0, 0, 0.25),
+    0 0 1px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+
+  // Use sticky colors
+  &.sticky-yellow { background: linear-gradient(180deg, lighten($sticky-yellow, 5%) 0%, $sticky-yellow 100%); }
+  &.sticky-pink { background: linear-gradient(180deg, lighten($sticky-pink, 5%) 0%, $sticky-pink 100%); }
+  &.sticky-blue { background: linear-gradient(180deg, lighten($sticky-blue, 5%) 0%, $sticky-blue 100%); }
+  &.sticky-green { background: linear-gradient(180deg, lighten($sticky-green, 5%) 0%, $sticky-green 100%); }
+  &.sticky-orange { background: linear-gradient(180deg, lighten($sticky-orange, 5%) 0%, $sticky-orange 100%); }
+  &.sticky-purple { background: linear-gradient(180deg, lighten($sticky-purple, 5%) 0%, $sticky-purple 100%); }
+  &.sticky-coral { background: linear-gradient(180deg, lighten($sticky-coral, 5%) 0%, $sticky-coral 100%); }
+  &.sticky-mint { background: linear-gradient(180deg, lighten($sticky-mint, 5%) 0%, $sticky-mint 100%); }
+  &.sticky-lavender { background: linear-gradient(180deg, lighten($sticky-lavender, 5%) 0%, $sticky-lavender 100%); }
+  &.sticky-peach { background: linear-gradient(180deg, lighten($sticky-peach, 5%) 0%, $sticky-peach 100%); }
+  &.sticky-sky { background: linear-gradient(180deg, lighten($sticky-sky, 5%) 0%, $sticky-sky 100%); }
+  &.sticky-lime { background: linear-gradient(180deg, lighten($sticky-lime, 5%) 0%, $sticky-lime 100%); }
+
+  .index-card-content {
+    position: relative;
+    padding: 36px 14px 14px;
+    min-height: 140px;
+    height: 100%;
+  }
+
+  .index-card-lines {
+    position: absolute;
+    inset: 0;
+    top: 36px;
+    background: repeating-linear-gradient(
+        transparent,
+        transparent 23px,
+        rgba(0, 0, 0, 0.08) 23px,
+        rgba(0, 0, 0, 0.08) 24px
+    );
+    pointer-events: none;
+  }
+
+  .index-card-header {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 32px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  }
+
+  .index-card-rule {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 40px;
+    width: 1px;
+    background: rgba(255, 0, 0, 0.2);
+  }
+
+  .index-card-textarea {
+    width: 100%;
+    min-height: 100px;
+    height: calc(100% - 20px);
+    border: none;
+    background: transparent;
+    font-family: 'Caveat', cursive;
+    font-size: 18px;
+    line-height: 24px;
+    color: #2a2a2a;
+    resize: none;
+    outline: none;
+    position: relative;
+    z-index: 1;
+
+    &::placeholder {
+      color: rgba(0, 0, 0, 0.3);
+    }
+  }
+
+  .index-card-text {
+    font-family: 'Caveat', cursive;
+    font-size: 18px;
+    line-height: 24px;
+    color: #2a2a2a;
+    margin: 0;
+    white-space: pre-wrap;
+    word-break: break-word;
+    position: relative;
+    z-index: 1;
+  }
+
+  .index-card-image {
+    width: 100%;
+    max-height: 120px;
+    object-fit: cover;
+    border-radius: 4px;
+    margin-top: 10px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  }
+}
+
+// =============================================
+// EVIDENCE TAG (NEW)
+// =============================================
+
+.evidence-tag {
+  width: 100px;
+  background: #f5e6d3;
+  border: 2px solid #8b7355;
+  border-radius: 3px;
+  padding: 20px 10px 10px;
+  box-shadow:
+    2px 2px 8px rgba(0, 0, 0, 0.2);
+
+  .tag-hole {
+    position: absolute;
+    top: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.2);
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.3);
+  }
+
+  .tag-content {
+    text-align: center;
+  }
+
+  .tag-number {
+    font-family: 'Courier Prime', monospace;
+    font-size: 10px;
+    font-weight: bold;
+    color: #8b7355;
+    margin-bottom: 4px;
+    letter-spacing: 1px;
+  }
+
+  .tag-input {
+    width: 100%;
+    border: none;
+    background: transparent;
+    font-family: 'Special Elite', serif;
+    font-size: 11px;
+    text-align: center;
+    color: #333;
+    outline: none;
+    text-transform: uppercase;
+
+    &::placeholder {
+      color: rgba(0, 0, 0, 0.3);
+    }
+  }
+
+  .tag-text {
+    font-family: 'Special Elite', serif;
+    font-size: 11px;
+    color: #333;
+    margin: 0;
+    text-transform: uppercase;
+    line-height: 1.3;
   }
 }
 
@@ -837,11 +1115,11 @@ $sticky-mint: #b2dfdb;
 
 .card-actions {
   position: absolute;
-  top: 6px;
-  right: 6px;
+  top: 4px;
+  right: 4px;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 3px;
   opacity: 0;
   transform: translateY(-4px) scale(0.95);
   transition: all 0.2s ease;
@@ -854,22 +1132,22 @@ $sticky-mint: #b2dfdb;
   }
 
   &.small {
-    top: 4px;
-    right: 4px;
+    top: 2px;
+    right: 2px;
   }
 }
 
 .color-change-row {
   display: flex;
-  gap: 3px;
-  padding: 4px;
+  gap: 2px;
+  padding: 3px;
   background: rgba(0, 0, 0, 0.6);
-  border-radius: 6px;
+  border-radius: 5px;
 }
 
 .mini-color-btn {
-  width: 16px;
-  height: 16px;
+  width: 14px;
+  height: 14px;
   border-radius: 50%;
   border: 1px solid transparent;
   cursor: pointer;
@@ -887,13 +1165,13 @@ $sticky-mint: #b2dfdb;
 
 .action-row {
   display: flex;
-  gap: 4px;
+  gap: 3px;
 }
 
 .action-btn {
-  width: 28px;
-  height: 28px;
-  border-radius: 6px;
+  width: 26px;
+  height: 26px;
+  border-radius: 5px;
   border: none;
   display: flex;
   align-items: center;
@@ -922,8 +1200,8 @@ $sticky-mint: #b2dfdb;
   }
 
   &.small {
-    width: 22px;
-    height: 22px;
+    width: 20px;
+    height: 20px;
     border-radius: 4px;
   }
 }
@@ -939,16 +1217,17 @@ $sticky-mint: #b2dfdb;
   transform: translateX(-50%);
   background: rgba(0, 0, 0, 0.7);
   color: rgba(255, 255, 255, 0.8);
-  padding: 8px 16px;
+  padding: 6px 14px;
   border-radius: 8px;
-  font-size: 12px;
+  font-size: 11px;
   z-index: 100;
   backdrop-filter: blur(4px);
+  white-space: nowrap;
 
   kbd {
     background: rgba(255, 255, 255, 0.2);
-    padding: 2px 8px;
-    border-radius: 4px;
+    padding: 2px 6px;
+    border-radius: 3px;
     font-family: inherit;
     font-weight: 600;
     margin: 0 2px;

@@ -7,6 +7,7 @@ import {
   AfterViewInit,
   OnDestroy,
   NgZone,
+  HostListener,
 } from "@angular/core";
 import { ActivatedRoute } from "@angular/router";
 import { BoardResponseDto } from "../../../../services/models/board-response-dto";
@@ -30,18 +31,22 @@ import { FormsModule } from "@angular/forms";
 
 const API_URL = "http://localhost:8080";
 
-// Note types
-type NoteType = "sticky" | "photo" | "document" | "clipping" | "label";
+// Note types - expanded
+type NoteType = "sticky" | "photo" | "document" | "clipping" | "label" | "index-card" | "evidence-tag";
 
 // Extended note type with UI properties
 interface NoteWithUI extends NoteResponseDto {
   rotation?: number;
   zIndex?: number;
   noteType?: NoteType;
-  // For tracking drag state
+  // Drag state
   isDragging?: boolean;
-  dragStartX?: number;
-  dragStartY?: number;
+  // Resize state
+  isResizing?: boolean;
+  width?: number;
+  height?: number;
+  // Local image preview (for immediate display before server response)
+  localImageUrl?: string;
 }
 
 // Color configuration
@@ -62,20 +67,23 @@ interface ColorConfig {
 export class BoardPage implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild("boardContainer") boardContainer!: ElementRef;
   @ViewChild("notesWrapper") notesWrapper!: ElementRef;
+  @ViewChild("boardSurface") boardSurface!: ElementRef;
 
   boardId!: string;
   board?: BoardResponseDto;
 
-  // Card types
+  // Card types - expanded
   NOTE_TYPES: { value: NoteType; label: string; icon: string }[] = [
     { value: "sticky", label: "Sticky Note", icon: "📝" },
     { value: "photo", label: "Photo", icon: "📷" },
     { value: "document", label: "Document", icon: "📄" },
     { value: "clipping", label: "Clipping", icon: "📰" },
     { value: "label", label: "Label", icon: "🏷️" },
+    { value: "index-card", label: "Index Card", icon: "📇" },
+    { value: "evidence-tag", label: "Evidence Tag", icon: "🔖" },
   ];
 
-  // Extended color palette
+  // Extended color palette - 12 colors
   STICKY_COLORS: ColorConfig[] = [
     { value: "yellow", label: "Yellow", class: "sticky-yellow", hex: "#fff59d" },
     { value: "pink", label: "Pink", class: "sticky-pink", hex: "#f8bbd9" },
@@ -85,15 +93,22 @@ export class BoardPage implements OnInit, AfterViewInit, OnDestroy {
     { value: "purple", label: "Purple", class: "sticky-purple", hex: "#d1c4e9" },
     { value: "coral", label: "Coral", class: "sticky-coral", hex: "#ffab91" },
     { value: "mint", label: "Mint", class: "sticky-mint", hex: "#b2dfdb" },
+    { value: "lavender", label: "Lavender", class: "sticky-lavender", hex: "#e1bee7" },
+    { value: "peach", label: "Peach", class: "sticky-peach", hex: "#ffe0b2" },
+    { value: "sky", label: "Sky", class: "sticky-sky", hex: "#b2ebf2" },
+    { value: "lime", label: "Lime", class: "sticky-lime", hex: "#dcedc8" },
   ];
 
-  // String colors for links
+  // String colors for links - expanded
   STRING_COLORS = [
     { value: "red", label: "Red", hex: "#8b0000" },
     { value: "blue", label: "Blue", hex: "#1a237e" },
     { value: "green", label: "Green", hex: "#1b5e20" },
     { value: "yellow", label: "Yellow", hex: "#f57f17" },
-    { value: "white", label: "White", hex: "#ffffff" },
+    { value: "white", label: "White", hex: "#e0e0e0" },
+    { value: "orange", label: "Orange", hex: "#e65100" },
+    { value: "purple", label: "Purple", hex: "#4a148c" },
+    { value: "black", label: "Black", hex: "#1a1a1a" },
   ];
 
   newNoteType: NoteType = "sticky";
@@ -114,9 +129,16 @@ export class BoardPage implements OnInit, AfterViewInit, OnDestroy {
   linkMode = false;
   linkFromNoteId: string | null = null;
 
-  // Board interaction - improved panning
-  isPanning = false;
+  // Board size - much larger for infinite canvas feel
+  boardWidth = 6000;
+  boardHeight = 4000;
+
+  // Zoom and pan
+  zoom = 1;
+  minZoom = 0.25;
+  maxZoom = 2;
   panOffset = { x: 0, y: 0 };
+  isPanning = false;
   lastPanPoint = { x: 0, y: 0 };
 
   // Z-index management
@@ -126,28 +148,26 @@ export class BoardPage implements OnInit, AfterViewInit, OnDestroy {
   selectedNoteId: string | null = null;
   editingNoteId: string | null = null;
 
-  // Drag state - using native drag for better performance
+  // Drag state - native drag for performance
   draggingNote: NoteWithUI | null = null;
   dragOffset = { x: 0, y: 0 };
+  dragStartPos = { x: 0, y: 0 };
+  hasDragged = false;
 
-  // Store note element refs for link calculations
-  private noteElements = new Map<string, HTMLElement>();
+  // Resize state
+  resizingNote: NoteWithUI | null = null;
+  resizeStartSize = { width: 0, height: 0 };
+  resizeStartPos = { x: 0, y: 0 };
 
-  // Bound event handlers for cleanup
-  private boundMouseMove: (e: MouseEvent) => void;
-  private boundMouseUp: (e: MouseEvent) => void;
-  private boundKeyDown: (e: KeyboardEvent) => void;
+  // Track animation frame for smooth updates
+  private animationFrameId: number | null = null;
 
   constructor(
     private route: ActivatedRoute,
     private http: HttpClient,
     private cd: ChangeDetectorRef,
     private ngZone: NgZone
-  ) {
-    this.boundMouseMove = this.onMouseMove.bind(this);
-    this.boundMouseUp = this.onMouseUp.bind(this);
-    this.boundKeyDown = this.onKeyDown.bind(this);
-  }
+  ) {}
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get("id");
@@ -157,21 +177,35 @@ export class BoardPage implements OnInit, AfterViewInit, OnDestroy {
     }
     this.boardId = id;
     this.loadBoard();
+
+    // Center the view initially
+    this.centerView();
   }
 
   ngAfterViewInit(): void {
-    document.addEventListener("mousemove", this.boundMouseMove);
-    document.addEventListener("mouseup", this.boundMouseUp);
-    document.addEventListener("keydown", this.boundKeyDown);
+    // Use passive listeners for better scroll performance
+    this.boardSurface?.nativeElement?.addEventListener('wheel', this.onWheel.bind(this), { passive: false });
   }
 
   ngOnDestroy(): void {
-    document.removeEventListener("mousemove", this.boundMouseMove);
-    document.removeEventListener("mouseup", this.boundMouseUp);
-    document.removeEventListener("keydown", this.boundKeyDown);
+    if (this.animationFrameId) {
+      cancelAnimationFrame(this.animationFrameId);
+    }
+    this.boardSurface?.nativeElement?.removeEventListener('wheel', this.onWheel.bind(this));
   }
 
-  private onKeyDown(e: KeyboardEvent): void {
+  // Center the view on load
+  private centerView(): void {
+    // Position to show center of usable area
+    this.panOffset = {
+      x: -this.boardWidth / 2 + window.innerWidth / 2,
+      y: -this.boardHeight / 2 + window.innerHeight / 2
+    };
+  }
+
+  // Keyboard shortcuts
+  @HostListener("window:keydown", ["$event"])
+  onKeyDown(e: KeyboardEvent): void {
     if (e.key === "Escape") {
       this.linkMode = false;
       this.linkFromNoteId = null;
@@ -182,6 +216,108 @@ export class BoardPage implements OnInit, AfterViewInit, OnDestroy {
     if (e.key === "Delete" && this.selectedNoteId && !this.editingNoteId) {
       this.deleteNote(this.selectedNoteId);
     }
+    // Zoom shortcuts
+    if ((e.ctrlKey || e.metaKey) && e.key === "=") {
+      e.preventDefault();
+      this.zoomIn();
+    }
+    if ((e.ctrlKey || e.metaKey) && e.key === "-") {
+      e.preventDefault();
+      this.zoomOut();
+    }
+    if ((e.ctrlKey || e.metaKey) && e.key === "0") {
+      e.preventDefault();
+      this.resetZoom();
+    }
+  }
+
+  @HostListener("window:mouseup", ["$event"])
+  onMouseUp(event: MouseEvent): void {
+    if (this.draggingNote) {
+      const note = this.draggingNote;
+      note.isDragging = false;
+      this.draggingNote = null;
+
+      // Only save if actually moved
+      if (this.hasDragged) {
+        this.updateNote(note);
+      }
+      this.hasDragged = false;
+      this.cd.detectChanges();
+    }
+
+    if (this.resizingNote) {
+      const note = this.resizingNote;
+      note.isResizing = false;
+      this.resizingNote = null;
+      this.updateNote(note);
+      this.cd.detectChanges();
+    }
+
+    this.isPanning = false;
+  }
+
+  @HostListener("window:mousemove", ["$event"])
+  onMouseMove(event: MouseEvent): void {
+    if (this.draggingNote) {
+      this.handleNoteDrag(event);
+    } else if (this.resizingNote) {
+      this.handleNoteResize(event);
+    } else if (this.isPanning) {
+      this.handleBoardPan(event);
+    }
+  }
+
+  /* =========================
+     ZOOM CONTROLS
+  ========================= */
+
+  onWheel(event: WheelEvent): void {
+    if (event.ctrlKey || event.metaKey) {
+      event.preventDefault();
+
+      const rect = this.boardSurface.nativeElement.getBoundingClientRect();
+      const mouseX = event.clientX - rect.left;
+      const mouseY = event.clientY - rect.top;
+
+      // Calculate zoom
+      const delta = event.deltaY > 0 ? 0.9 : 1.1;
+      const newZoom = Math.max(this.minZoom, Math.min(this.maxZoom, this.zoom * delta));
+
+      if (newZoom !== this.zoom) {
+        // Adjust pan to zoom toward mouse position
+        const scale = newZoom / this.zoom;
+        this.panOffset.x = mouseX - (mouseX - this.panOffset.x) * scale;
+        this.panOffset.y = mouseY - (mouseY - this.panOffset.y) * scale;
+        this.zoom = newZoom;
+        this.cd.detectChanges();
+      }
+    } else {
+      // Normal scroll = pan
+      this.panOffset.x -= event.deltaX;
+      this.panOffset.y -= event.deltaY;
+      this.cd.detectChanges();
+    }
+  }
+
+  zoomIn(): void {
+    this.zoom = Math.min(this.maxZoom, this.zoom * 1.2);
+    this.cd.detectChanges();
+  }
+
+  zoomOut(): void {
+    this.zoom = Math.max(this.minZoom, this.zoom / 1.2);
+    this.cd.detectChanges();
+  }
+
+  resetZoom(): void {
+    this.zoom = 1;
+    this.centerView();
+    this.cd.detectChanges();
+  }
+
+  getZoomPercent(): number {
+    return Math.round(this.zoom * 100);
   }
 
   /* =========================
@@ -213,6 +349,8 @@ export class BoardPage implements OnInit, AfterViewInit, OnDestroy {
           rotation: this.getRandomRotation(),
           zIndex: 10,
           noteType: (note as any).noteType || "sticky",
+          width: (note as any).width || this.getDefaultWidth((note as any).noteType || "sticky"),
+          height: (note as any).height,
         }));
         this.cd.detectChanges();
       },
@@ -242,11 +380,39 @@ export class BoardPage implements OnInit, AfterViewInit, OnDestroy {
   }
 
   /* =========================
-     RANDOM ROTATION
+     HELPERS
   ========================= */
 
   getRandomRotation(): number {
-    return (Math.random() - 0.5) * 6; // -3 to +3 degrees
+    return (Math.random() - 0.5) * 6;
+  }
+
+  getDefaultWidth(type: NoteType): number {
+    switch (type) {
+      case "photo": return 180;
+      case "document": return 240;
+      case "clipping": return 220;
+      case "label": return 120;
+      case "index-card": return 280;
+      case "evidence-tag": return 100;
+      default: return 200;
+    }
+  }
+
+  getDefaultHeight(type: NoteType): number | undefined {
+    switch (type) {
+      case "photo": return 220;
+      case "index-card": return 180;
+      default: return undefined; // Auto height
+    }
+  }
+
+  trackByNoteId(index: number, note: NoteWithUI): string {
+    return note.id || index.toString();
+  }
+
+  trackByLinkId(index: number, link: LinkResponse): string {
+    return link.id || index.toString();
   }
 
   /* =========================
@@ -254,14 +420,23 @@ export class BoardPage implements OnInit, AfterViewInit, OnDestroy {
   ========================= */
 
   createNote(): void {
+    // Place new note in visible area
+    const viewCenterX = (-this.panOffset.x + window.innerWidth / 2) / this.zoom;
+    const viewCenterY = (-this.panOffset.y + window.innerHeight / 2) / this.zoom;
+
     const payload: NoteRequestDto = {
       color: this.newNoteColor,
       content: "",
-      positionX: 150 + Math.random() * 300 - this.panOffset.x,
-      positionY: 150 + Math.random() * 200 - this.panOffset.y,
+      positionX: viewCenterX + (Math.random() - 0.5) * 200,
+      positionY: viewCenterY + (Math.random() - 0.5) * 150,
     };
 
     (payload as any).noteType = this.newNoteType;
+    (payload as any).width = this.getDefaultWidth(this.newNoteType);
+    const defaultHeight = this.getDefaultHeight(this.newNoteType);
+    if (defaultHeight) {
+      (payload as any).height = defaultHeight;
+    }
 
     create1(this.http, API_URL, { boardId: this.boardId, body: payload }).subscribe({
       next: (res) => {
@@ -271,6 +446,8 @@ export class BoardPage implements OnInit, AfterViewInit, OnDestroy {
             rotation: this.getRandomRotation(),
             zIndex: ++this.maxZIndex,
             noteType: this.newNoteType,
+            width: this.getDefaultWidth(this.newNoteType),
+            height: defaultHeight,
           };
           this.notes.push(newNote);
           this.selectedNoteId = newNote.id!;
@@ -291,6 +468,8 @@ export class BoardPage implements OnInit, AfterViewInit, OnDestroy {
       color: note.color,
     };
     (payload as any).noteType = note.noteType;
+    (payload as any).width = note.width;
+    (payload as any).height = note.height;
 
     patch1(this.http, API_URL, { boardId: this.boardId, noteId: note.id, body: payload }).subscribe({
       next: (res) => {
@@ -325,6 +504,9 @@ export class BoardPage implements OnInit, AfterViewInit, OnDestroy {
         rotation: this.notes[index].rotation,
         zIndex: this.notes[index].zIndex,
         noteType: this.notes[index].noteType,
+        width: this.notes[index].width,
+        height: this.notes[index].height,
+        localImageUrl: this.notes[index].localImageUrl,
       };
     }
   }
@@ -361,7 +543,7 @@ export class BoardPage implements OnInit, AfterViewInit, OnDestroy {
   }
 
   deselectAll(): void {
-    if (!this.linkMode && !this.draggingNote) {
+    if (!this.linkMode && !this.draggingNote && !this.resizingNote) {
       this.selectedNoteId = null;
       this.editingNoteId = null;
       this.cd.detectChanges();
@@ -369,7 +551,7 @@ export class BoardPage implements OnInit, AfterViewInit, OnDestroy {
   }
 
   /* =========================
-     LINKS CRUD - IMPROVED
+     LINKS CRUD
   ========================= */
 
   toggleLinkMode(): void {
@@ -390,7 +572,6 @@ export class BoardPage implements OnInit, AfterViewInit, OnDestroy {
     } else if (this.linkFromNoteId !== noteId) {
       this.createLinkTo(noteId);
     } else {
-      // Clicked same note, deselect
       this.linkFromNoteId = null;
       this.cd.detectChanges();
     }
@@ -417,7 +598,6 @@ export class BoardPage implements OnInit, AfterViewInit, OnDestroy {
       toNoteId: noteToId,
     };
 
-    // Add string color if your API supports it
     (payload as any).color = this.newStringColor;
 
     createLink(this.http, API_URL, { boardId: this.boardId, body: payload }).subscribe({
@@ -458,7 +638,7 @@ export class BoardPage implements OnInit, AfterViewInit, OnDestroy {
     if (event) event.stopPropagation();
     const input = document.getElementById("file-input-" + noteId) as HTMLInputElement;
     if (input) {
-      input.value = ""; // Reset to allow same file selection
+      input.value = "";
       input.click();
     }
   }
@@ -469,45 +649,91 @@ export class BoardPage implements OnInit, AfterViewInit, OnDestroy {
 
     const file = input.files[0];
 
-    // Validate file type
     if (!file.type.startsWith("image/")) {
       console.error("Invalid file type");
       return;
     }
 
+    // Create local preview immediately
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const noteIndex = this.notes.findIndex((n) => n.id === noteId);
+      if (noteIndex !== -1) {
+        this.notes[noteIndex].localImageUrl = e.target?.result as string;
+        this.cd.detectChanges();
+      }
+    };
+    reader.readAsDataURL(file);
+
+    // Upload to server
     uploadImage(this.http, API_URL, { boardId: this.boardId, noteId, body: { file } }).subscribe({
       next: (res) => {
         if (res.body) {
-          // Update the note with new image URL
           const noteIndex = this.notes.findIndex((n) => n.id === noteId);
           if (noteIndex !== -1) {
             this.notes[noteIndex] = {
               ...this.notes[noteIndex],
               ...res.body,
-              imageUrl: res.body.imageUrl, // Ensure imageUrl is set
+              imageUrl: res.body.imageUrl,
+              localImageUrl: undefined, // Clear local preview
             };
           }
         }
         this.cd.detectChanges();
       },
-      error: (err) => console.error("Error uploading image:", err),
+      error: (err) => {
+        console.error("Error uploading image:", err);
+        // Keep local preview on error
+      },
     });
   }
 
-  // Get proper image URL (handle relative URLs)
-  getImageUrl(imageUrl: string | undefined): string {
-    if (!imageUrl) return "";
-    if (imageUrl.startsWith("http")) return imageUrl;
-    return `${API_URL}${imageUrl.startsWith("/") ? "" : "/"}${imageUrl}`;
+  // Get image URL - prioritize local preview, then server URL - FIXED
+  getImageUrl(note: NoteWithUI): string {
+    // Local preview takes priority (for immediate display after upload)
+    if (note.localImageUrl) {
+      return note.localImageUrl;
+    }
+
+    // No image URL
+    if (!note.imageUrl) {
+      return "";
+    }
+
+    // Already a full URL (http or https)
+    if (note.imageUrl.startsWith("http://") || note.imageUrl.startsWith("https://")) {
+      return note.imageUrl;
+    }
+
+    // Data URL (base64)
+    if (note.imageUrl.startsWith("data:")) {
+      return note.imageUrl;
+    }
+
+    // Blob URL
+    if (note.imageUrl.startsWith("blob:")) {
+      return note.imageUrl;
+    }
+
+    // Relative path - prepend API URL
+    const path = note.imageUrl.startsWith("/") ? note.imageUrl : `/${note.imageUrl}`;
+    return `${API_URL}${path}`;
+  }
+
+  onImageError(note: NoteWithUI): void {
+    console.error("Image failed to load for note:", note.id, "URL:", note.imageUrl);
+    note.imageUrl = "";
+    note.localImageUrl = undefined;
+    this.cd.detectChanges();
   }
 
   /* =========================
-     NATIVE DRAG - MORE EFFICIENT
+     DRAG - OPTIMIZED
   ========================= */
 
   onNoteMouseDown(event: MouseEvent, note: NoteWithUI): void {
-    if (event.button !== 0) return; // Only left click
-    if (this.editingNoteId === note.id) return; // Don't drag while editing
+    if (event.button !== 0) return;
+    if (this.editingNoteId === note.id) return;
 
     event.preventDefault();
     event.stopPropagation();
@@ -521,52 +747,88 @@ export class BoardPage implements OnInit, AfterViewInit, OnDestroy {
     note.isDragging = true;
     note.zIndex = ++this.maxZIndex;
     this.selectedNoteId = note.id!;
+    this.hasDragged = false;
 
-    // Calculate offset from mouse to note position
+    // Store start position for drag detection
+    this.dragStartPos = { x: event.clientX, y: event.clientY };
+
+    // Calculate offset accounting for zoom and pan
     this.dragOffset = {
-      x: event.clientX - (note.positionX || 0) - this.panOffset.x,
-      y: event.clientY - (note.positionY || 0) - this.panOffset.y,
+      x: event.clientX / this.zoom - (note.positionX || 0) - this.panOffset.x / this.zoom,
+      y: event.clientY / this.zoom - (note.positionY || 0) - this.panOffset.y / this.zoom,
     };
 
     this.cd.detectChanges();
   }
 
-  private onMouseMove(event: MouseEvent): void {
-    if (this.draggingNote) {
-      // Update note position directly - run outside Angular for performance
-      this.ngZone.runOutsideAngular(() => {
-        const newX = event.clientX - this.dragOffset.x - this.panOffset.x;
-        const newY = event.clientY - this.dragOffset.y - this.panOffset.y;
+  private handleNoteDrag(event: MouseEvent): void {
+    if (!this.draggingNote) return;
 
-        this.draggingNote!.positionX = Math.max(0, newX);
-        this.draggingNote!.positionY = Math.max(0, newY);
-
-        // Use requestAnimationFrame for smooth updates
-        requestAnimationFrame(() => {
-          this.cd.detectChanges();
-        });
-      });
-    } else if (this.isPanning) {
-      const dx = event.clientX - this.lastPanPoint.x;
-      const dy = event.clientY - this.lastPanPoint.y;
-      this.panOffset.x += dx;
-      this.panOffset.y += dy;
-      this.lastPanPoint = { x: event.clientX, y: event.clientY };
-      this.cd.detectChanges();
+    // Check if actually moved (prevents accidental drags on click)
+    const dx = Math.abs(event.clientX - this.dragStartPos.x);
+    const dy = Math.abs(event.clientY - this.dragStartPos.y);
+    if (dx > 3 || dy > 3) {
+      this.hasDragged = true;
     }
+
+    if (!this.hasDragged) return;
+
+    // Calculate new position accounting for zoom
+    const newX = event.clientX / this.zoom - this.dragOffset.x - this.panOffset.x / this.zoom;
+    const newY = event.clientY / this.zoom - this.dragOffset.y - this.panOffset.y / this.zoom;
+
+    // Clamp to board bounds
+    this.draggingNote.positionX = Math.max(0, Math.min(this.boardWidth - 100, newX));
+    this.draggingNote.positionY = Math.max(0, Math.min(this.boardHeight - 100, newY));
+
+    // Use requestAnimationFrame for smooth updates
+    if (this.animationFrameId) {
+      cancelAnimationFrame(this.animationFrameId);
+    }
+    this.animationFrameId = requestAnimationFrame(() => {
+      this.cd.detectChanges();
+    });
   }
 
-  private onMouseUp(event: MouseEvent): void {
-    if (this.draggingNote) {
-      const note = this.draggingNote;
-      note.isDragging = false;
-      this.draggingNote = null;
+  /* =========================
+     RESIZE
+  ========================= */
 
-      // Save position to server
-      this.updateNote(note);
-      this.cd.detectChanges();
+  onResizeMouseDown(event: MouseEvent, note: NoteWithUI): void {
+    event.preventDefault();
+    event.stopPropagation();
+
+    this.resizingNote = note;
+    note.isResizing = true;
+    this.resizeStartSize = {
+      width: note.width || this.getDefaultWidth(note.noteType || "sticky"),
+      height: note.height || 100,
+    };
+    this.resizeStartPos = { x: event.clientX, y: event.clientY };
+
+    this.cd.detectChanges();
+  }
+
+  private handleNoteResize(event: MouseEvent): void {
+    if (!this.resizingNote) return;
+
+    const dx = (event.clientX - this.resizeStartPos.x) / this.zoom;
+    const dy = (event.clientY - this.resizeStartPos.y) / this.zoom;
+
+    const minWidth = 100;
+    const minHeight = 60;
+    const maxWidth = 500;
+    const maxHeight = 600;
+
+    this.resizingNote.width = Math.max(minWidth, Math.min(maxWidth, this.resizeStartSize.width + dx));
+    this.resizingNote.height = Math.max(minHeight, Math.min(maxHeight, this.resizeStartSize.height + dy));
+
+    if (this.animationFrameId) {
+      cancelAnimationFrame(this.animationFrameId);
     }
-    this.isPanning = false;
+    this.animationFrameId = requestAnimationFrame(() => {
+      this.cd.detectChanges();
+    });
   }
 
   /* =========================
@@ -574,7 +836,7 @@ export class BoardPage implements OnInit, AfterViewInit, OnDestroy {
   ========================= */
 
   onBoardMouseDown(event: MouseEvent): void {
-    // Only pan with middle mouse button or shift+left click
+    // Pan with middle mouse, shift+left, or just left click on empty area
     if (event.button === 1 || (event.button === 0 && event.shiftKey)) {
       this.isPanning = true;
       this.lastPanPoint = { x: event.clientX, y: event.clientY };
@@ -582,80 +844,76 @@ export class BoardPage implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
-  /* =========================
-     REGISTER NOTE ELEMENTS FOR LINKS
-  ========================= */
-
-  registerNoteElement(noteId: string, element: HTMLElement): void {
-    this.noteElements.set(noteId, element);
+  private handleBoardPan(event: MouseEvent): void {
+    const dx = event.clientX - this.lastPanPoint.x;
+    const dy = event.clientY - this.lastPanPoint.y;
+    this.panOffset.x += dx;
+    this.panOffset.y += dy;
+    this.lastPanPoint = { x: event.clientX, y: event.clientY };
+    this.cd.detectChanges();
   }
 
   /* =========================
-     LINK PATH CALCULATIONS - IMPROVED
+     LINK PATH CALCULATIONS - FIXED
+
+     The key fix: SVG is now OUTSIDE the notes-wrapper transform,
+     so we need to calculate positions in SCREEN coordinates.
+     getPinX/Y now returns screen coordinates that account for zoom and pan.
   ========================= */
 
   getNoteById(noteId: string): NoteWithUI | undefined {
     return this.notes.find((n) => n.id === noteId);
   }
 
-  // Get pin position (top center of card)
+  // Get pin X position in SCREEN coordinates
   getPinX(noteId?: string): number {
     const note = noteId ? this.getNoteById(noteId) : undefined;
     if (!note) return 0;
-    const width = this.getNoteWidth(note);
-    return (note.positionX || 0) + width / 2 + this.panOffset.x;
+    const width = note.width || this.getDefaultWidth(note.noteType || "sticky");
+    // Position in local coordinates + offset to center + transform to screen
+    const localX = (note.positionX || 0) + width / 2;
+    return localX * this.zoom + this.panOffset.x;
   }
 
+  // Get pin Y position in SCREEN coordinates
   getPinY(noteId?: string): number {
     const note = noteId ? this.getNoteById(noteId) : undefined;
     if (!note) return 0;
-    return (note.positionY || 0) + 8 + this.panOffset.y; // Pin is 8px from top
+    // Pin is at top of card, around 12px from top
+    const localY = (note.positionY || 0) + 12;
+    return localY * this.zoom + this.panOffset.y;
   }
 
-  getNoteWidth(note: NoteWithUI): number {
-    switch (note.noteType) {
-      case "photo":
-        return 180;
-      case "document":
-        return 220;
-      case "clipping":
-        return 200;
-      case "label":
-        return 120;
-      default:
-        return 200;
-    }
-  }
-
-  // Curved path with natural sag
   getLinkPath(link: LinkResponse): string {
+    const fromNote = this.getNoteById(link.fromNoteId!);
+    const toNote = this.getNoteById(link.toNoteId!);
+
+    // Return empty if notes not found
+    if (!fromNote || !toNote) {
+      return "";
+    }
+
     const x1 = this.getPinX(link.fromNoteId);
     const y1 = this.getPinY(link.fromNoteId);
     const x2 = this.getPinX(link.toNoteId);
     const y2 = this.getPinY(link.toNoteId);
 
-    if (x1 === 0 && y1 === 0) return "";
-    if (x2 === 0 && y2 === 0) return "";
-
-    // Calculate distance and sag
+    // Natural sag based on distance
     const distance = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
-    const sag = Math.min(distance * 0.12, 40);
+    const sag = Math.min(distance * 0.15, 60);
 
-    // Control point for quadratic curve (below midpoint for sag)
     const midX = (x1 + x2) / 2;
     const midY = (y1 + y2) / 2 + sag;
 
     return `M ${x1} ${y1} Q ${midX} ${midY} ${x2} ${y2}`;
   }
 
-  // Get string color
   getStringColor(link: LinkResponse): string {
     const color = (link as any).color || "red";
     const colorConfig = this.STRING_COLORS.find((c) => c.value === color);
     return colorConfig?.hex || "#8b0000";
   }
 
-  // Get sticky note color class
   getStickyColorClass(color: string): string {
     const colorConfig = this.STICKY_COLORS.find((c) => c.value === color);
     return colorConfig?.class || "sticky-yellow";
@@ -665,21 +923,43 @@ export class BoardPage implements OnInit, AfterViewInit, OnDestroy {
      CHANGE NOTE COLOR
   ========================= */
 
-  changeNoteColor(note: NoteWithUI, color: string, event?: Event): void {
-    if (event) event.stopPropagation();
+  changeNoteColor(note: NoteWithUI, color: string, event: Event): void {
+    event.stopPropagation();
     note.color = color;
     this.updateNote(note);
+    this.cd.detectChanges();
   }
 
   /* =========================
-     TRACKBY FUNCTIONS
+     TRANSFORM HELPERS
   ========================= */
 
-  trackByNoteId(index: number, note: NoteWithUI): string {
-    return note.id || index.toString();
+  getSvgWidth(): number {
+    if (this.boardSurface?.nativeElement) {
+      return this.boardSurface.nativeElement.clientWidth || 2000;
+    }
+    return 2000;
   }
 
-  trackByLinkId(index: number, link: LinkResponse): string {
-    return link.id || index.toString();
+  getSvgHeight(): number {
+    if (this.boardSurface?.nativeElement) {
+      return this.boardSurface.nativeElement.clientHeight || 1500;
+    }
+    return 1500;
+  }
+
+  getBoardTransform(): string {
+    return `translate(${this.panOffset.x}px, ${this.panOffset.y}px) scale(${this.zoom})`;
+  }
+
+  getNoteStyle(note: NoteWithUI): { [key: string]: any } {
+    return {
+      "left.px": note.positionX,
+      "top.px": note.positionY,
+      "z-index": note.zIndex,
+      "transform": `rotate(${note.rotation || 0}deg)`,
+      "width.px": note.width,
+      "height.px": note.height || "auto",
+    };
   }
 }
