@@ -1,30 +1,78 @@
 <div class="board-container">
+
+  <!-- ===================== CONTROLS ===================== -->
   <div class="controls">
     <label>
       Color:
       <select [(ngModel)]="newNoteColor">
-        <option *ngFor="let c of ['purple', 'yellow', 'green', 'blue', 'pink']" [value]="c">{{c}}</option>
+        <option *ngFor="let c of COLORS" [value]="c">{{ c }}</option>
       </select>
     </label>
 
     <button (click)="createNote()">➕ Create Note</button>
+
+    <!-- NEW: Link Mode Toggle -->
+    <button
+      [class.active]="linkMode"
+      (click)="toggleLinkMode()"
+    >
+      🔗 Link Notes
+    </button>
   </div>
 
+  <!-- ===================== NOTES WRAPPER ===================== -->
   <div class="notes-wrapper">
-    <div
-      class="note"
-      *ngFor="let note of notes"
-      [ngStyle]="{ 'background-color': note.color, left: note.positionX + 'px', top: note.positionY + 'px' }"
-      cdkDrag
-      (cdkDragEnded)="dragEnded($event, note)"
-    >
-      <textarea [(ngModel)]="note.content" (blur)="updateNote(note)" placeholder="Write something..."></textarea>
+
+    <!-- ===================== LINKS LINES ===================== -->
+    <!-- SVG overlay for links -->
+    <svg class="links-svg">
+      <defs>
+        <marker id="pin" markerWidth="6" markerHeight="6" refX="3" refY="3">
+          <circle cx="3" cy="3" r="3" fill="red" />
+        </marker>
+      </defs>
+
+      <line *ngFor="let link of links"
+            [attr.x1]="getNoteCenterX(link.fromNoteId)"
+            [attr.y1]="getNoteCenterY(link.fromNoteId)"
+            [attr.x2]="getNoteCenterX(link.toNoteId)"
+            [attr.y2]="getNoteCenterY(link.toNoteId)"
+            stroke="red"
+            stroke-width="2"
+            marker-end="url(#pin)"
+            class="link-line"
+            (click)="deleteLinkById(link.id!)">
+      </line>
+    </svg>
+
+    <!-- ===================== NOTES ===================== -->
+    <div class="note"
+         *ngFor="let note of notes"
+         [ngStyle]="{
+           'background-color': note.color,
+           left: note.positionX + 'px',
+           top: note.positionY + 'px'
+         }"
+         cdkDrag
+         (cdkDragEnded)="dragEnded($event, note)"
+         (click)="noteClickedForLink(note.id!)">
+
+      <textarea [(ngModel)]="note.content"
+                (blur)="updateNote(note)"
+                placeholder="Write something..."></textarea>
 
       <img *ngIf="note.imageUrl" [src]="note.imageUrl" alt="Note image" />
 
       <input type="file" (change)="uploadNoteImage($event, note.id!)" />
 
       <button class="delete-btn" (click)="deleteNote(note.id!)">🗑 Delete</button>
+
+      <!-- Show link indicator if this note is selected as fromNote -->
+      <div *ngIf="linkMode && linkFromNoteId === note.id" class="link-indicator">
+        🔗 Linking...
+      </div>
+
     </div>
+
   </div>
 </div>

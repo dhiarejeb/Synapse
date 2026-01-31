@@ -28,7 +28,6 @@ import {FormsModule} from '@angular/forms';
 
 
 const API_URL = 'http://localhost:8080';
-const COLORS = ['purple', 'yellow', 'green', 'blue', 'pink'];
 
 @Component({
   selector: 'app-board',
@@ -41,9 +40,11 @@ export class BoardPage implements OnInit {
   boardId!: string;
   board?: BoardResponseDto;
 
+  COLORS = ['purple', 'yellow', 'green', 'blue', 'pink'];
+  newNoteColor = this.COLORS[0];
+
   notes: NoteResponseDto[] = [];
   links: LinkResponse[] = [];
-  newNoteColor = COLORS[0];
 
   loadingBoard = false;
   loadingNotes = false;
@@ -51,6 +52,10 @@ export class BoardPage implements OnInit {
   errorBoard?: string;
   errorNotes?: string;
   errorLinks?: string;
+
+  // Links logic
+  linkMode = false;
+  linkFromNoteId: string | null = null;
 
   constructor(
     private route: ActivatedRoute,
@@ -70,7 +75,7 @@ export class BoardPage implements OnInit {
 
   /* =========================
      LOAD BOARD, NOTES, LINKS
-     ========================= */
+  ========================= */
 
   private loadBoard(): void {
     this.loadingBoard = true;
@@ -84,7 +89,7 @@ export class BoardPage implements OnInit {
         console.error('Error loading board:', err);
         this.errorBoard = 'Unable to load board';
       },
-      complete: () => (this.loadingBoard = false)
+      complete: () => (this.loadingBoard = false),
     });
   }
 
@@ -100,7 +105,7 @@ export class BoardPage implements OnInit {
         this.errorNotes = 'Unable to load notes';
         this.cd.detectChanges();
       },
-      complete: () => (this.loadingNotes = false)
+      complete: () => (this.loadingNotes = false),
     });
   }
 
@@ -116,13 +121,13 @@ export class BoardPage implements OnInit {
         this.errorLinks = 'Unable to load links';
         this.cd.detectChanges();
       },
-      complete: () => (this.loadingLinks = false)
+      complete: () => (this.loadingLinks = false),
     });
   }
 
   /* =========================
      NOTES CRUD
-     ========================= */
+  ========================= */
 
   createNote(): void {
     const payload: NoteRequestDto = {
@@ -142,6 +147,8 @@ export class BoardPage implements OnInit {
   }
 
   updateNote(note: NoteResponseDto): void {
+    if (!note.id) return;
+
     const payload: NoteRequestDto = {
       content: note.content,
       positionX: note.positionX,
@@ -149,12 +156,9 @@ export class BoardPage implements OnInit {
       color: note.color,
     };
 
-    patch1(this.http, API_URL, { boardId: this.boardId, noteId: note.id!, body: payload }).subscribe({
+    patch1(this.http, API_URL, { boardId: this.boardId, noteId: note.id, body: payload }).subscribe({
       next: res => {
-        if (res.body) {
-          const index = this.notes.findIndex(n => n.id === res.body!.id);
-          if (index !== -1) this.notes[index] = res.body!;
-        }
+        if (res.body) this.replaceNote(res.body);
         this.cd.detectChanges();
       },
       error: err => console.error('Error updating note:', err),
@@ -178,35 +182,61 @@ export class BoardPage implements OnInit {
 
   /* =========================
      LINKS CRUD
-     ========================= */
+  ========================= */
 
-  createLink(payload: CreateLinkRequest): void {
+  toggleLinkMode(noteId?: string) {
+    this.linkMode = !this.linkMode;
+    if (this.linkMode && noteId) this.linkFromNoteId = noteId;
+    else this.linkFromNoteId = null;
+  }
+
+  noteClickedForLink(noteId: string) {
+    if (!this.linkMode) return;
+
+    if (!this.linkFromNoteId) {
+      this.linkFromNoteId = noteId;
+    } else if (this.linkFromNoteId !== noteId) {
+      this.createLinkTo(noteId);
+    }
+  }
+
+  createLinkTo(noteToId: string) {
+    if (!this.linkFromNoteId) return;
+
+    const payload: CreateLinkRequest = {
+      fromNoteId: this.linkFromNoteId,
+      toNoteId: noteToId,
+    };
+
     createLink(this.http, API_URL, { boardId: this.boardId, body: payload }).subscribe({
       next: res => {
         if (res.body) this.links.push(res.body);
+        this.linkMode = false;
+        this.linkFromNoteId = null;
         this.cd.detectChanges();
       },
-      error: err => console.error('Error creating link:', err)
+      error: err => console.error('Error creating link:', err),
     });
   }
 
-  updateLink(linkId: string, payload: UpdateLinkRequest): void {
-    patchLink(this.http, API_URL, { boardId: this.boardId, linkId, body: payload }).subscribe({
-      next: res => {
-        if (res.body) this.replaceLink(res.body);
-        this.cd.detectChanges();
-      },
-      error: err => console.error('Error updating link:', err)
-    });
-  }
-
-  deleteLink(linkId: string): void {
+  deleteLinkById(linkId: string) {
     deleteLink(this.http, API_URL, { boardId: this.boardId, linkId }).subscribe({
       next: () => {
         this.links = this.links.filter(l => l.id !== linkId);
         this.cd.detectChanges();
       },
-      error: err => console.error('Error deleting link:', err)
+      error: err => console.error('Error deleting link:', err),
+    });
+  }
+
+  updateLink(linkId: string, newToNoteId: string) {
+    const payload: UpdateLinkRequest = { toNoteId: newToNoteId };
+    patchLink(this.http, API_URL, { boardId: this.boardId, linkId, body: payload }).subscribe({
+      next: res => {
+        if (res.body) this.replaceLink(res.body);
+        this.cd.detectChanges();
+      },
+      error: err => console.error('Error updating link:', err),
     });
   }
 
@@ -216,9 +246,9 @@ export class BoardPage implements OnInit {
   }
 
   /* =========================
-   UPLOAD IMAGE FOR NOTE
-   ========================= */
-  uploadNoteImage(event: Event, noteId: string): void {
+     UPLOAD IMAGE
+  ========================= */
+  uploadNoteImage(event: Event, noteId: string) {
     const input = event.target as HTMLInputElement;
     if (!input.files?.length) return;
 
@@ -226,27 +256,42 @@ export class BoardPage implements OnInit {
 
     uploadImage(this.http, API_URL, { boardId: this.boardId, noteId, body: { file } }).subscribe({
       next: res => {
-        if (res.body) {
-          const index = this.notes.findIndex(n => n.id === res.body!.id);
-          if (index !== -1) this.notes[index] = res.body!;
-        }
+        if (res.body) this.replaceNote(res.body);
         this.cd.detectChanges();
       },
       error: err => console.error('Error uploading image:', err),
     });
   }
 
-
   /* =========================
-    DRAG NOTE
- ========================= */
-  dragEnded(event: CdkDragEnd, note: NoteResponseDto): void {
+     DRAG NOTE
+  ========================= */
+  dragEnded(event: CdkDragEnd, note: NoteResponseDto) {
     const pos = event.source.getFreeDragPosition();
     note.positionX = pos.x;
     note.positionY = pos.y;
-    this.updateNote(note); // update backend with new position
+    this.updateNote(note);
   }
 
+  /* =========================
+     HELPER
+  ========================= */
+  getNoteById(noteId: string): NoteResponseDto | undefined {
+    return this.notes.find(n => n.id === noteId);
+  }
+
+  // Returns the X position center of a note, or 0 if note not found
+  getNoteCenterX(noteId?: string): number {
+    const note = noteId ? this.getNoteById(noteId) : undefined;
+    // @ts-ignore
+    return note ? note.positionX + 90 : 0; // 90 = half of note width
+  }
+
+  getNoteCenterY(noteId?: string): number {
+    const note = noteId ? this.getNoteById(noteId) : undefined;
+    // @ts-ignore
+    return note ? note.positionY + 60 : 0; // 60 = half of note height
+  }
 }
 
 
