@@ -37,6 +37,13 @@ public class Note extends BaseEntity {
     @Column(name = "POSITION_Y")
     private Double positionY;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "NOTE_TYPE", nullable = false)
+    private NoteType noteType = NoteType.STICKY;
+
+    private Double width;
+    private Double height;
+
 //    @Column(name = "IS_PINNED")
 //    private boolean pinned = false;
 

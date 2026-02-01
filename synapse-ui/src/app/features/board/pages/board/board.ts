@@ -31,8 +31,11 @@ import { FormsModule } from "@angular/forms";
 
 const API_URL = "http://localhost:8080";
 
-// Note types - expanded
-type NoteType = "sticky" | "photo" | "document" | "clipping" | "label" | "index-card" | "evidence-tag";
+// Note types - matching backend enum
+type NoteType = "STICKY" | "PHOTO" | "DOCUMENT" | "CLIPPING" | "LABEL" | "INDEX_CARD" | "EVIDENCE_TAG";
+
+
+
 
 // Extended note type with UI properties
 interface NoteWithUI extends NoteResponseDto {
@@ -72,15 +75,15 @@ export class BoardPage implements OnInit, AfterViewInit, OnDestroy {
   boardId!: string;
   board?: BoardResponseDto;
 
-  // Card types - expanded
+  // Card types - matching backend enum
   NOTE_TYPES: { value: NoteType; label: string; icon: string }[] = [
-    { value: "sticky", label: "Sticky Note", icon: "📝" },
-    { value: "photo", label: "Photo", icon: "📷" },
-    { value: "document", label: "Document", icon: "📄" },
-    { value: "clipping", label: "Clipping", icon: "📰" },
-    { value: "label", label: "Label", icon: "🏷️" },
-    { value: "index-card", label: "Index Card", icon: "📇" },
-    { value: "evidence-tag", label: "Evidence Tag", icon: "🔖" },
+    { value: "STICKY", label: "Sticky Note", icon: "📝" },
+    { value: "PHOTO", label: "Photo", icon: "📷" },
+    { value: "DOCUMENT", label: "Document", icon: "📄" },
+    { value: "CLIPPING", label: "Clipping", icon: "📰" },
+    { value: "LABEL", label: "Label", icon: "🏷️" },
+    { value: "INDEX_CARD", label: "Index Card", icon: "📇" },
+    { value: "EVIDENCE_TAG", label: "Evidence Tag", icon: "🔖" },
   ];
 
   // Extended color palette - 12 colors
@@ -111,7 +114,7 @@ export class BoardPage implements OnInit, AfterViewInit, OnDestroy {
     { value: "black", label: "Black", hex: "#1a1a1a" },
   ];
 
-  newNoteType: NoteType = "sticky";
+  newNoteType: NoteType = "STICKY";
   newNoteColor = "yellow";
   newStringColor = "red";
 
@@ -344,14 +347,20 @@ export class BoardPage implements OnInit, AfterViewInit, OnDestroy {
     this.loadingNotes = true;
     getNotes(this.http, API_URL, { boardId: this.boardId }).subscribe({
       next: (res) => {
-        this.notes = (res.body ?? []).map((note) => ({
-          ...note,
-          rotation: this.getRandomRotation(),
-          zIndex: 10,
-          noteType: (note as any).noteType || "sticky",
-          width: (note as any).width || this.getDefaultWidth((note as any).noteType || "sticky"),
-          height: (note as any).height,
-        }));
+        this.notes = (res.body ?? []).map((note) => {
+          const noteType: NoteType = (note as any).noteType || "STICKY";
+          // Use persisted dimensions from backend, fallback to defaults only if not set
+          const width = (note as any).width ?? this.getDefaultWidth(noteType);
+          const height = (note as any).height ?? this.getDefaultHeight(noteType);
+          return {
+            ...note,
+            rotation: this.getRandomRotation(),
+            zIndex: 10,
+            noteType,
+            width,
+            height,
+          };
+        });
         this.cd.detectChanges();
       },
       error: (err) => {
@@ -389,21 +398,21 @@ export class BoardPage implements OnInit, AfterViewInit, OnDestroy {
 
   getDefaultWidth(type: NoteType): number {
     switch (type) {
-      case "photo": return 180;
-      case "document": return 240;
-      case "clipping": return 220;
-      case "label": return 120;
-      case "index-card": return 280;
-      case "evidence-tag": return 100;
-      default: return 200;
+      case "PHOTO": return 180;
+      case "DOCUMENT": return 240;
+      case "CLIPPING": return 220;
+      case "LABEL": return 120;
+      case "INDEX_CARD": return 280;
+      case "EVIDENCE_TAG": return 100;
+      default: return 200; // STICKY default
     }
   }
 
   getDefaultHeight(type: NoteType): number | undefined {
     switch (type) {
-      case "photo": return 220;
-      case "index-card": return 180;
-      default: return undefined; // Auto height
+      case "PHOTO": return 220;
+      case "INDEX_CARD": return 180;
+      default: return undefined; // Auto height for STICKY, DOCUMENT, etc.
     }
   }
 
@@ -424,30 +433,33 @@ export class BoardPage implements OnInit, AfterViewInit, OnDestroy {
     const viewCenterX = (-this.panOffset.x + window.innerWidth / 2) / this.zoom;
     const viewCenterY = (-this.panOffset.y + window.innerHeight / 2) / this.zoom;
 
+    const defaultWidth = this.getDefaultWidth(this.newNoteType);
+    const defaultHeight = this.getDefaultHeight(this.newNoteType);
+
+    // Use proper DTO fields for width, height, and noteType
     const payload: NoteRequestDto = {
       color: this.newNoteColor,
       content: "",
       positionX: viewCenterX + (Math.random() - 0.5) * 200,
       positionY: viewCenterY + (Math.random() - 0.5) * 150,
+      noteType: this.newNoteType,
+      width: defaultWidth,
+      height: defaultHeight,
     };
-
-    (payload as any).noteType = this.newNoteType;
-    (payload as any).width = this.getDefaultWidth(this.newNoteType);
-    const defaultHeight = this.getDefaultHeight(this.newNoteType);
-    if (defaultHeight) {
-      (payload as any).height = defaultHeight;
-    }
 
     create1(this.http, API_URL, { boardId: this.boardId, body: payload }).subscribe({
       next: (res) => {
         if (res.body) {
+          // Use persisted dimensions from response, fallback to defaults
+          const responseWidth = (res.body as any).width ?? defaultWidth;
+          const responseHeight = (res.body as any).height ?? defaultHeight;
           const newNote: NoteWithUI = {
             ...res.body,
             rotation: this.getRandomRotation(),
             zIndex: ++this.maxZIndex,
             noteType: this.newNoteType,
-            width: this.getDefaultWidth(this.newNoteType),
-            height: defaultHeight,
+            width: responseWidth,
+            height: responseHeight,
           };
           this.notes.push(newNote);
           this.selectedNoteId = newNote.id!;
@@ -461,15 +473,16 @@ export class BoardPage implements OnInit, AfterViewInit, OnDestroy {
   updateNote(note: NoteWithUI): void {
     if (!note.id) return;
 
+    // Use proper DTO fields for all properties including width, height, and noteType
     const payload: NoteRequestDto = {
       content: note.content,
       positionX: note.positionX,
       positionY: note.positionY,
       color: note.color,
+      noteType: note.noteType,
+      width: note.width,
+      height: note.height,
     };
-    (payload as any).noteType = note.noteType;
-    (payload as any).width = note.width;
-    (payload as any).height = note.height;
 
     patch1(this.http, API_URL, { boardId: this.boardId, noteId: note.id, body: payload }).subscribe({
       next: (res) => {
@@ -499,14 +512,16 @@ export class BoardPage implements OnInit, AfterViewInit, OnDestroy {
   private replaceNote(updated: NoteResponseDto) {
     const index = this.notes.findIndex((n) => n.id === updated.id);
     if (index !== -1) {
+      const existingNote = this.notes[index];
+      // Use persisted dimensions from backend response, preserve UI-only properties
       this.notes[index] = {
         ...updated,
-        rotation: this.notes[index].rotation,
-        zIndex: this.notes[index].zIndex,
-        noteType: this.notes[index].noteType,
-        width: this.notes[index].width,
-        height: this.notes[index].height,
-        localImageUrl: this.notes[index].localImageUrl,
+        rotation: existingNote.rotation,
+        zIndex: existingNote.zIndex,
+        noteType: (updated as any).noteType ?? existingNote.noteType,
+        width: (updated as any).width ?? existingNote.width,
+        height: (updated as any).height ?? existingNote.height,
+        localImageUrl: existingNote.localImageUrl,
       };
     }
   }
@@ -573,6 +588,7 @@ export class BoardPage implements OnInit, AfterViewInit, OnDestroy {
       this.createLinkTo(noteId);
     } else {
       this.linkFromNoteId = null;
+      this.linkMode = false;
       this.cd.detectChanges();
     }
   }
@@ -665,20 +681,33 @@ export class BoardPage implements OnInit, AfterViewInit, OnDestroy {
     };
     reader.readAsDataURL(file);
 
-    // Upload to server
+    // Helper function to validate NoteType
+    function isValidNoteType(type: any): type is NoteType {
+      return ["STICKY", "PHOTO", "DOCUMENT", "CLIPPING", "LABEL", "INDEX_CARD", "EVIDENCE_TAG"].includes(type);
+    }
+
+// Upload to server
     uploadImage(this.http, API_URL, { boardId: this.boardId, noteId, body: { file } }).subscribe({
       next: (res) => {
         if (res.body) {
           const noteIndex = this.notes.findIndex((n) => n.id === noteId);
           if (noteIndex !== -1) {
-            this.notes[noteIndex] = {
-              ...this.notes[noteIndex],
+            const currentNote = this.notes[noteIndex];
+
+            // Safely merge response into note
+            const updatedNote: NoteWithUI = {
+              ...currentNote,
               ...res.body,
               imageUrl: res.body.imageUrl,
               localImageUrl: undefined, // Clear local preview
+              // Ensure noteType is valid
+              noteType: isValidNoteType(res.body.noteType) ? res.body.noteType : currentNote.noteType,
             };
+
+            this.notes[noteIndex] = updatedNote;
           }
         }
+
         this.cd.detectChanges();
       },
       error: (err) => {
@@ -686,6 +715,7 @@ export class BoardPage implements OnInit, AfterViewInit, OnDestroy {
         // Keep local preview on error
       },
     });
+
   }
 
   // Get image URL - prioritize local preview, then server URL - FIXED
@@ -801,7 +831,7 @@ export class BoardPage implements OnInit, AfterViewInit, OnDestroy {
     this.resizingNote = note;
     note.isResizing = true;
     this.resizeStartSize = {
-      width: note.width || this.getDefaultWidth(note.noteType || "sticky"),
+      width: note.width || this.getDefaultWidth(note.noteType || "STICKY"),
       height: note.height || 100,
     };
     this.resizeStartPos = { x: event.clientX, y: event.clientY };
@@ -869,7 +899,7 @@ export class BoardPage implements OnInit, AfterViewInit, OnDestroy {
   getPinX(noteId?: string): number {
     const note = noteId ? this.getNoteById(noteId) : undefined;
     if (!note) return 0;
-    const width = note.width || this.getDefaultWidth(note.noteType || "sticky");
+    const width = note.width || this.getDefaultWidth(note.noteType || "STICKY");
     // Position in local coordinates + offset to center + transform to screen
     const localX = (note.positionX || 0) + width / 2;
     return localX * this.zoom + this.panOffset.x;
@@ -963,3 +993,5 @@ export class BoardPage implements OnInit, AfterViewInit, OnDestroy {
     };
   }
 }
+
+export default BoardPage;

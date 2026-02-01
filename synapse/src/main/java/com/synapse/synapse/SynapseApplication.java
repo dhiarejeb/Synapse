@@ -23,7 +23,7 @@ public class SynapseApplication {
 //          if(userRole.isEmpty()){
 //              final Role role = new Role();
 //               role.setName("ROLE_USER");
-//               role.setCreatedBy("APP");
+//              role.setCreatedBy("APP");
 //                roleRepository.save(role);
 //            }
 //        };

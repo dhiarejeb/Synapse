@@ -5,8 +5,11 @@ export interface NoteResponseDto {
   color?: string;
   content?: string;
   createdDate?: string;
+  height?: number;
   id?: string;
   imageUrl?: string;
+  noteType?: string;
   positionX?: number;
   positionY?: number;
+  width?: number;
 }

@@ -14,6 +14,9 @@ public class NoteMapper {
                 .color(dto.getColor())
                 .positionX(dto.getPositionX())
                 .positionY(dto.getPositionY())
+                .noteType(NoteType.fromString(dto.getNoteType()))
+                .width(dto.getWidth())
+                .height(dto.getHeight())
                 //.pinned(dto.getPinned())
                 .board(board)
                 .author(author)
@@ -26,6 +29,9 @@ public class NoteMapper {
         note.setColor(dto.getColor());
         note.setPositionX(dto.getPositionX());
         note.setPositionY(dto.getPositionY());
+        note.setNoteType(NoteType.fromString(dto.getNoteType()));
+        note.setWidth(dto.getWidth());
+        note.setHeight(dto.getHeight());
         //note.setPinned(dto.getPinned());
     }
 
@@ -35,6 +41,10 @@ public class NoteMapper {
         if (dto.getColor() != null) note.setColor(dto.getColor());
         if (dto.getPositionX() != null) note.setPositionX(dto.getPositionX());
         if (dto.getPositionY() != null) note.setPositionY(dto.getPositionY());
+        if (dto.getNoteType() != null)
+            note.setNoteType(NoteType.fromString(dto.getNoteType()));
+        if (dto.getWidth() != null) note.setWidth(dto.getWidth());
+        if (dto.getHeight() != null) note.setHeight(dto.getHeight());
         //if (dto.getPinned() != null) note.setPinned(dto.getPinned());
     }
 
@@ -49,6 +59,9 @@ public class NoteMapper {
                 .color(note.getColor())
                 .positionX(note.getPositionX())
                 .positionY(note.getPositionY())
+                .noteType(note.getNoteType().toApiValue())
+                .width(note.getWidth())
+                .height(note.getHeight())
                 //.pinned(note.isPinned())
                 .createdDate(note.getCreatedDate())
                 .build();

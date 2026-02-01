@@ -28,7 +28,7 @@
           </div>
 
           <!-- Color Picker (for sticky/index-card) -->
-          <div class="toolbar-group" *ngIf="newNoteType === 'sticky' || newNoteType === 'index-card'">
+          <div class="toolbar-group" *ngIf="newNoteType === 'STICKY' || newNoteType === 'INDEX_CARD'">
             <label class="toolbar-label">Color:</label>
             <div class="color-picker">
               <button *ngFor="let color of STICKY_COLORS.slice(0, 8)"
@@ -193,7 +193,7 @@
         <ng-container *ngFor="let note of notes; trackBy: trackByNoteId">
 
           <!-- ==================== STICKY NOTE ==================== -->
-          <div *ngIf="note.noteType === 'sticky' || !note.noteType"
+          <div *ngIf="note.noteType === 'STICKY' || !note.noteType"
                class="card sticky-note"
                [class]="getStickyColorClass(note.color || 'yellow')"
                [class.selected]="selectedNoteId === note.id"
@@ -277,7 +277,7 @@
           </div>
 
           <!-- ==================== PHOTO CARD ==================== -->
-          <div *ngIf="note.noteType === 'photo'"
+          <div *ngIf="note.noteType === 'PHOTO'"
                class="card photo-card"
                [class.selected]="selectedNoteId === note.id"
                [class.link-source]="linkFromNoteId === note.id"
@@ -358,7 +358,7 @@
           </div>
 
           <!-- ==================== DOCUMENT CARD ==================== -->
-          <div *ngIf="note.noteType === 'document'"
+          <div *ngIf="note.noteType === 'DOCUMENT'"
                class="card document-card"
                [class.selected]="selectedNoteId === note.id"
                [class.link-source]="linkFromNoteId === note.id"
@@ -410,7 +410,7 @@
           </div>
 
           <!-- ==================== CLIPPING CARD ==================== -->
-          <div *ngIf="note.noteType === 'clipping'"
+          <div *ngIf="note.noteType === 'CLIPPING'"
                class="card clipping-card"
                [class.selected]="selectedNoteId === note.id"
                [class.link-source]="linkFromNoteId === note.id"
@@ -481,7 +481,7 @@
           </div>
 
           <!-- ==================== LABEL CARD ==================== -->
-          <div *ngIf="note.noteType === 'label'"
+          <div *ngIf="note.noteType === 'LABEL'"
                class="card label-card"
                [class.selected]="selectedNoteId === note.id"
                [class.link-source]="linkFromNoteId === note.id"
@@ -523,7 +523,7 @@
           </div>
 
           <!-- ==================== INDEX CARD ==================== -->
-          <div *ngIf="note.noteType === 'index-card'"
+          <div *ngIf="note.noteType === 'INDEX_CARD'"
                class="card index-card"
                [class]="getStickyColorClass(note.color || 'yellow')"
                [class.selected]="selectedNoteId === note.id"
@@ -606,7 +606,7 @@
           </div>
 
           <!-- ==================== EVIDENCE TAG ==================== -->
-          <div *ngIf="note.noteType === 'evidence-tag'"
+          <div *ngIf="note.noteType === 'EVIDENCE_TAG'"
                class="card evidence-tag"
                [class.selected]="selectedNoteId === note.id"
                [class.link-source]="linkFromNoteId === note.id"

@@ -23,6 +23,10 @@ public class NoteRequestDto {
 
     private Double positionY;
 
+    private String noteType;
+    private Double width;
+    private Double height;
+
     //private Boolean pinned;
 }
 

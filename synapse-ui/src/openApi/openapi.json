@@ -958,6 +958,17 @@
           "positionY": {
             "type": "number",
             "format": "double"
+          },
+          "noteType": {
+            "type": "string"
+          },
+          "width": {
+            "type": "number",
+            "format": "double"
+          },
+          "height": {
+            "type": "number",
+            "format": "double"
           }
         }
       },
@@ -981,6 +992,17 @@
             "format": "double"
           },
           "positionY": {
+            "type": "number",
+            "format": "double"
+          },
+          "noteType": {
+            "type": "string"
+          },
+          "width": {
+            "type": "number",
+            "format": "double"
+          },
+          "height": {
             "type": "number",
             "format": "double"
           },
