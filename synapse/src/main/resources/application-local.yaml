@@ -21,3 +21,7 @@ spring:
     region: eu-north-1
     s3:
       bucket: amzn-s3-synapse
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB

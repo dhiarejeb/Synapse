@@ -1128,10 +1128,12 @@ $sticky-lime: #dcedc8;
 
 .card-actions {
   position: absolute;
-  top: 4px;
-  right: 4px;
+  top: 8px;
+  //left: 8px;
+  right: 8px;
+  flex-direction: row-reverse;
   display: flex;
-  flex-direction: column;
+  //flex-direction: column;
   gap: 3px;
   opacity: 0;
   transform: translateY(-4px) scale(0.95);
@@ -1151,6 +1153,7 @@ $sticky-lime: #dcedc8;
 }
 
 .color-change-row {
+  order: 1;
   display: flex;
   gap: 2px;
   padding: 3px;
@@ -1203,8 +1206,11 @@ $sticky-lime: #dcedc8;
   }
 
   &.delete-btn {
+    order: 2;
     background: $pin-red;
     color: white;
+    top: 4px;      // distance from top
+    right: 4px;
 
     &:hover {
       background: darken($pin-red, 10%);

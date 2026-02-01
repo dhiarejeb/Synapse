@@ -4,6 +4,7 @@ import com.synapse.synapse.board.Board;
 import com.synapse.synapse.board.BoardRepository;
 import com.synapse.synapse.exception.BusinessException;
 import com.synapse.synapse.exception.ErrorCode;
+import com.synapse.synapse.link.LinkRepository;
 import com.synapse.synapse.user.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -22,6 +23,7 @@ public class NoteService {
     private final BoardRepository boardRepository;
     private final NoteMapper noteMapper;
     private final S3Service s3Service;
+    private final LinkRepository  linkRepository;
 
     @Transactional(readOnly = true)
     public List<NoteResponseDto> getNotes(String boardId, User user) {
@@ -35,6 +37,7 @@ public class NoteService {
                 .map(noteMapper::toNoteResponse)
                 .toList();
     }
+
 
     @Transactional(readOnly = true)
     public NoteResponseDto getNoteById(String boardId, String noteId, User user) {
@@ -105,7 +108,7 @@ public class NoteService {
         return noteMapper.toNoteResponse(note);
     }
 
-
+    @Transactional
     public void delete(String boardId, String noteId, User user) {
         Board board = boardRepository.findByIdAndOwnerId(boardId, user.getId())
                 .orElseThrow(() ->
@@ -116,6 +119,9 @@ public class NoteService {
                 .orElseThrow(() ->
                         new BusinessException(ErrorCode.NOTE_NOT_FOUND)
                 );
+
+        // Delete links referencing this note (both fromNote and toNote)
+        linkRepository.deleteByFromNoteOrToNote(note, note);
         // delete image from S3 first
         s3Service.deleteFile(note.getImageUrl());
 

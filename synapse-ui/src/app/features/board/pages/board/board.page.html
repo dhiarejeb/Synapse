@@ -251,25 +251,34 @@
                 </button>
               </div>
               <div class="action-row">
-                <button class="action-btn upload-btn" (click)="triggerFileInput(note.id!, $event)" title="Upload image">
+                <!--<button class="action-btn upload-btn" (click)="triggerFileInput(note.id!, $event)" title="Upload image">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
                     <polyline points="17 8 12 3 7 8"/>
                     <line x1="12" y1="3" x2="12" y2="15"/>
                   </svg>
-                </button>
-                <button class="action-btn delete-btn" (click)="deleteNote(note.id!, $event)" title="Delete">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <polyline points="3 6 5 6 21 6"/>
-                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
-                  </svg>
-                </button>
+                </button>-->
+                <!-- Delete Button Row -->
+                <div class="delete-row">
+                  <button class="action-btn delete-btn"
+                          (click)="deleteNote(note.id!, $event)"
+                          title="Delete">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <polyline points="3 6 5 6 21 6"/>
+                      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                    </svg>
+                  </button>
+                </div>
               </div>
-              <input type="file"
-                     [id]="'file-input-' + note.id"
-                     (change)="uploadNoteImage($event, note.id!)"
-                     accept="image/*"
-                     style="display: none" />
+              <!--<input
+                type="file"
+                [id]="'file-input-' + note.id"
+                (click)="$event.stopPropagation()"
+                (change)="uploadNoteImage($event, note.id!)"
+                accept="image/*"
+                style="display: none"
+              />-->
+
             </div>
           </div>
 
@@ -346,11 +355,15 @@
                   </svg>
                 </button>
               </div>
-              <input type="file"
-                     [id]="'file-input-' + note.id"
-                     (change)="uploadNoteImage($event, note.id!)"
-                     accept="image/*"
-                     style="display: none" />
+              <input
+                type="file"
+                [id]="'file-input-' + note.id"
+                (click)="$event.stopPropagation()"
+                (change)="uploadNoteImage($event, note.id!)"
+                accept="image/*"
+                style="display: none"
+              />
+
             </div>
           </div>
 
@@ -455,13 +468,13 @@
 
             <div class="card-actions" *ngIf="selectedNoteId === note.id && !linkMode">
               <div class="action-row">
-                <button class="action-btn upload-btn" (click)="triggerFileInput(note.id!, $event)" title="Add image">
+                <!--<button class="action-btn upload-btn" (click)="triggerFileInput(note.id!, $event)" title="Add image">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
                     <polyline points="17 8 12 3 7 8"/>
                     <line x1="12" y1="3" x2="12" y2="15"/>
                   </svg>
-                </button>
+                </button>-->
                 <button class="action-btn delete-btn" (click)="deleteNote(note.id!, $event)" title="Delete">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <polyline points="3 6 5 6 21 6"/>
@@ -469,11 +482,15 @@
                   </svg>
                 </button>
               </div>
-              <input type="file"
-                     [id]="'file-input-' + note.id"
-                     (change)="uploadNoteImage($event, note.id!)"
-                     accept="image/*"
-                     style="display: none" />
+              <!--<input
+                type="file"
+                [id]="'file-input-' + note.id"
+                (click)="$event.stopPropagation()"
+                (change)="uploadNoteImage($event, note.id!)"
+                accept="image/*"
+                style="display: none"
+              />-->
+
             </div>
           </div>
 
@@ -580,13 +597,13 @@
                 </button>
               </div>
               <div class="action-row">
-                <button class="action-btn upload-btn" (click)="triggerFileInput(note.id!, $event)" title="Upload image">
+                <!--<button class="action-btn upload-btn" (click)="triggerFileInput(note.id!, $event)" title="Upload image">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
                     <polyline points="17 8 12 3 7 8"/>
                     <line x1="12" y1="3" x2="12" y2="15"/>
                   </svg>
-                </button>
+                </button>-->
                 <button class="action-btn delete-btn" (click)="deleteNote(note.id!, $event)" title="Delete">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <polyline points="3 6 5 6 21 6"/>
@@ -594,11 +611,15 @@
                   </svg>
                 </button>
               </div>
-              <input type="file"
-                     [id]="'file-input-' + note.id"
-                     (change)="uploadNoteImage($event, note.id!)"
-                     accept="image/*"
-                     style="display: none" />
+              <!--<input
+                type="file"
+                [id]="'file-input-' + note.id"
+                (click)="$event.stopPropagation()"
+                (change)="uploadNoteImage($event, note.id!)"
+                accept="image/*"
+                style="display: none"
+              />-->
+
             </div>
           </div>
 

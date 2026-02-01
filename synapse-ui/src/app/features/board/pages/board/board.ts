@@ -707,15 +707,26 @@ export class BoardPage implements OnInit, AfterViewInit, OnDestroy {
      UPLOAD IMAGE - FIXED
   ========================= */
 
-  triggerFileInput(noteId: string, event?: Event): void {
+  /*triggerFileInput(noteId: string, event?: Event): void {
     if (event) event.stopPropagation();
     const input = document.getElementById("file-input-" + noteId) as HTMLInputElement;
     if (input) {
       input.value = "";
       input.click();
     }
-  }
+  }*/
+  triggerFileInput(noteId: string, event: MouseEvent): void {
+    event.preventDefault();
+    event.stopPropagation(); // 🔥 THIS IS THE KEY
 
+    const input = document.getElementById(
+      `file-input-${noteId}`
+    ) as HTMLInputElement;
+
+    if (input) {
+      input.click();
+    }
+  }
   uploadNoteImage(event: Event, noteId: string): void {
     console.log('uploadNoteImage CALLED', noteId);
     const input = event.target as HTMLInputElement;
@@ -1061,6 +1072,8 @@ export class BoardPage implements OnInit, AfterViewInit, OnDestroy {
 
     return style;
   }
+
+
 }
 
 export default BoardPage;
