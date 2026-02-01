@@ -50,7 +50,7 @@ public class LinkController {
     }
 
     @DeleteMapping("/{linkId}")
-    @PreAuthorize("@linkSecurityService.isLinkOwner(#id)")
+    @PreAuthorize("@linkSecurityService.isLinkOwner(#linkId)")
     public ResponseEntity<Void> deleteLink(
             @PathVariable String boardId,
             @PathVariable String linkId,
@@ -61,7 +61,7 @@ public class LinkController {
     }
 
     @PatchMapping("/{linkId}")
-    @PreAuthorize("@linkSecurityService.isLinkOwner(#id)")
+    @PreAuthorize("@linkSecurityService.isLinkOwner(#linkId)")
     public LinkResponse patchLink(
             @PathVariable String boardId,
             @PathVariable String linkId,

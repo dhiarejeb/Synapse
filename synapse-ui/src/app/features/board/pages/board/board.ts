@@ -34,9 +34,6 @@ const API_URL = "http://localhost:8080";
 // Note types - matching backend enum
 type NoteType = "STICKY" | "PHOTO" | "DOCUMENT" | "CLIPPING" | "LABEL" | "INDEX_CARD" | "EVIDENCE_TAG";
 
-
-
-
 // Extended note type with UI properties
 interface NoteWithUI extends NoteResponseDto {
   rotation?: number;
@@ -58,6 +55,42 @@ interface ColorConfig {
   label: string;
   class: string;
   hex: string;
+}
+
+// Valid note types for validation
+const VALID_NOTE_TYPES: NoteType[] = ["STICKY", "PHOTO", "DOCUMENT", "CLIPPING", "LABEL", "INDEX_CARD", "EVIDENCE_TAG"];
+
+// Helper function to normalize and validate NoteType from backend
+// Handles various formats: "STICKY", "sticky", "Sticky", "sticky_note", etc.
+function normalizeNoteType(type: any): NoteType {
+  if (!type) return "STICKY";
+
+  // Convert to uppercase string
+  const normalized = String(type).toUpperCase().trim();
+
+  // Direct match
+  if (VALID_NOTE_TYPES.includes(normalized as NoteType)) {
+    return normalized as NoteType;
+  }
+
+  // Handle potential underscore variations
+  const withUnderscore = normalized.replace(/-/g, '_');
+  if (VALID_NOTE_TYPES.includes(withUnderscore as NoteType)) {
+    return withUnderscore as NoteType;
+  }
+
+  // Handle "STICKY_NOTE" -> "STICKY" mapping if needed
+  if (normalized === "STICKY_NOTE") return "STICKY";
+  if (normalized === "INDEX" || normalized === "INDEXCARD") return "INDEX_CARD";
+  if (normalized === "EVIDENCE" || normalized === "EVIDENCETAG") return "EVIDENCE_TAG";
+
+  // Default fallback
+  return "STICKY";
+}
+
+// Helper function to validate NoteType
+function isValidNoteType(type: any): type is NoteType {
+  return VALID_NOTE_TYPES.includes(type);
 }
 
 @Component({
@@ -165,14 +198,20 @@ export class BoardPage implements OnInit, AfterViewInit, OnDestroy {
   // Track animation frame for smooth updates
   private animationFrameId: number | null = null;
 
+  // Bound event handlers for proper cleanup
+  private boundOnWheel: (event: WheelEvent) => void;
+
   constructor(
     private route: ActivatedRoute,
     private http: HttpClient,
     private cd: ChangeDetectorRef,
     private ngZone: NgZone
-  ) {}
+  ) {
+    this.boundOnWheel = this.onWheel.bind(this);
+  }
 
   ngOnInit(): void {
+
     const id = this.route.snapshot.paramMap.get("id");
     if (!id) {
       this.errorBoard = "No board ID provided";
@@ -185,16 +224,18 @@ export class BoardPage implements OnInit, AfterViewInit, OnDestroy {
     this.centerView();
   }
 
+
+
   ngAfterViewInit(): void {
     // Use passive listeners for better scroll performance
-    this.boardSurface?.nativeElement?.addEventListener('wheel', this.onWheel.bind(this), { passive: false });
+    this.boardSurface?.nativeElement?.addEventListener('wheel', this.boundOnWheel, { passive: false });
   }
 
   ngOnDestroy(): void {
     if (this.animationFrameId) {
       cancelAnimationFrame(this.animationFrameId);
     }
-    this.boardSurface?.nativeElement?.removeEventListener('wheel', this.onWheel.bind(this));
+    this.boardSurface?.nativeElement?.removeEventListener('wheel', this.boundOnWheel);
   }
 
   // Center the view on load
@@ -343,22 +384,28 @@ export class BoardPage implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
+  // FIXED: loadNotes now properly normalizes noteType from backend
   private loadNotes(): void {
     this.loadingNotes = true;
     getNotes(this.http, API_URL, { boardId: this.boardId }).subscribe({
       next: (res) => {
         this.notes = (res.body ?? []).map((note) => {
-          const noteType: NoteType = (note as any).noteType || "STICKY";
+          // FIXED: Use normalizeNoteType to handle various backend formats
+          const noteType: NoteType = normalizeNoteType(note.noteType);
+
           // Use persisted dimensions from backend, fallback to defaults only if not set
-          const width = (note as any).width ?? this.getDefaultWidth(noteType);
-          const height = (note as any).height ?? this.getDefaultHeight(noteType);
+          const width = note.width ?? this.getDefaultWidth(noteType);
+          const height = note.height ?? this.getDefaultHeight(noteType);
+
           return {
             ...note,
             rotation: this.getRandomRotation(),
             zIndex: 10,
-            noteType,
+            noteType, // Use normalized type
             width,
             height,
+            // Preserve imageUrl from backend
+            imageUrl: note.imageUrl,
           };
         });
         this.cd.detectChanges();
@@ -451,13 +498,13 @@ export class BoardPage implements OnInit, AfterViewInit, OnDestroy {
       next: (res) => {
         if (res.body) {
           // Use persisted dimensions from response, fallback to defaults
-          const responseWidth = (res.body as any).width ?? defaultWidth;
-          const responseHeight = (res.body as any).height ?? defaultHeight;
+          const responseWidth = res.body.width ?? defaultWidth;
+          const responseHeight = res.body.height ?? defaultHeight;
           const newNote: NoteWithUI = {
             ...res.body,
             rotation: this.getRandomRotation(),
             zIndex: ++this.maxZIndex,
-            noteType: this.newNoteType,
+            noteType: this.newNoteType, // Use the type we sent, not from response
             width: responseWidth,
             height: responseHeight,
           };
@@ -509,6 +556,7 @@ export class BoardPage implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
+  // FIXED: replaceNote now properly normalizes noteType
   private replaceNote(updated: NoteResponseDto) {
     const index = this.notes.findIndex((n) => n.id === updated.id);
     if (index !== -1) {
@@ -518,10 +566,13 @@ export class BoardPage implements OnInit, AfterViewInit, OnDestroy {
         ...updated,
         rotation: existingNote.rotation,
         zIndex: existingNote.zIndex,
-        noteType: (updated as any).noteType ?? existingNote.noteType,
-        width: (updated as any).width ?? existingNote.width,
-        height: (updated as any).height ?? existingNote.height,
+        // FIXED: Use normalizeNoteType for backend response
+        noteType: normalizeNoteType(updated.noteType) || existingNote.noteType,
+        width: updated.width ?? existingNote.width,
+        height: updated.height ?? existingNote.height,
         localImageUrl: existingNote.localImageUrl,
+        // Preserve imageUrl from response
+        imageUrl: updated.imageUrl ?? existingNote.imageUrl,
       };
     }
   }
@@ -635,6 +686,12 @@ export class BoardPage implements OnInit, AfterViewInit, OnDestroy {
   deleteLinkById(linkId: string, event?: Event): void {
     if (event) {
       event.stopPropagation();
+      event.preventDefault();
+    }
+
+    if (!linkId) {
+      console.error("Cannot delete link: linkId is null or undefined");
+      return;
     }
 
     deleteLink(this.http, API_URL, { boardId: this.boardId, linkId }).subscribe({
@@ -660,132 +717,125 @@ export class BoardPage implements OnInit, AfterViewInit, OnDestroy {
   }
 
   uploadNoteImage(event: Event, noteId: string): void {
+    console.log('uploadNoteImage CALLED', noteId);
     const input = event.target as HTMLInputElement;
     if (!input.files?.length) return;
 
     const file = input.files[0];
+    if (!file.type.startsWith('image/')) return;
 
-    if (!file.type.startsWith("image/")) {
-      console.error("Invalid file type");
-      return;
-    }
-
-    // Create local preview immediately
+    // 🔹 Local preview
     const reader = new FileReader();
-    reader.onload = (e) => {
-      const noteIndex = this.notes.findIndex((n) => n.id === noteId);
-      if (noteIndex !== -1) {
-        this.notes[noteIndex].localImageUrl = e.target?.result as string;
-        this.cd.detectChanges();
+    reader.onload = e => {
+      const idx = this.notes.findIndex(n => n.id === noteId);
+      if (idx !== -1) {
+        this.notes[idx].localImageUrl = e.target?.result as string;
       }
     };
     reader.readAsDataURL(file);
 
-    // Helper function to validate NoteType
-    function isValidNoteType(type: any): type is NoteType {
-      return ["STICKY", "PHOTO", "DOCUMENT", "CLIPPING", "LABEL", "INDEX_CARD", "EVIDENCE_TAG"].includes(type);
-    }
+    // 🔹 Multipart upload
+    const formData = new FormData();
+    formData.append('file', file);
 
-// Upload to server
-    uploadImage(this.http, API_URL, { boardId: this.boardId, noteId, body: { file } }).subscribe({
-      next: (res) => {
-        if (res.body) {
-          const noteIndex = this.notes.findIndex((n) => n.id === noteId);
-          if (noteIndex !== -1) {
-            const currentNote = this.notes[noteIndex];
+    const url = `${API_URL}/api/v1/boards/${this.boardId}/notes/${noteId}/image`;
 
-            // Safely merge response into note
-            const updatedNote: NoteWithUI = {
-              ...currentNote,
-              ...res.body,
-              imageUrl: res.body.imageUrl,
-              localImageUrl: undefined, // Clear local preview
-              // Ensure noteType is valid
-              noteType: isValidNoteType(res.body.noteType) ? res.body.noteType : currentNote.noteType,
-            };
-
-            this.notes[noteIndex] = updatedNote;
-          }
+    this.http.post<NoteResponseDto>(url, formData).subscribe({
+      next: res => {
+        const idx = this.notes.findIndex(n => n.id === noteId);
+        if (idx !== -1) {
+          this.notes[idx] = {
+            ...this.notes[idx],
+            ...res,
+            imageUrl: res.imageUrl,
+            localImageUrl: undefined,
+            noteType: normalizeNoteType(res.noteType),
+          };
         }
 
-        this.cd.detectChanges();
+        // 🔹 allow re-uploading same file
+        input.value = '';
       },
-      error: (err) => {
-        console.error("Error uploading image:", err);
-        // Keep local preview on error
-      },
+      error: err => {
+        console.error('Image upload failed', err);
+        input.value = '';
+      }
     });
-
   }
 
-  // Get image URL - prioritize local preview, then server URL - FIXED
+
+
+
   getImageUrl(note: NoteWithUI): string {
-    // Local preview takes priority (for immediate display after upload)
-    if (note.localImageUrl) {
-      return note.localImageUrl;
-    }
+    if (note.localImageUrl) return note.localImageUrl;
+    if (!note.imageUrl) return '';
 
-    // No image URL
-    if (!note.imageUrl) {
-      return "";
-    }
+    try {
+      const url = note.imageUrl.startsWith('http')
+        ? new URL(note.imageUrl)
+        : new URL(`${API_URL}${note.imageUrl.startsWith('/') ? '' : '/'}${note.imageUrl}`);
 
-    // Already a full URL (http or https)
-    if (note.imageUrl.startsWith("http://") || note.imageUrl.startsWith("https://")) {
+      // 🔥 Encode path (fix spaces, unicode, etc.)
+      url.pathname = encodeURI(url.pathname);
+      return url.toString();
+    } catch {
       return note.imageUrl;
     }
-
-    // Data URL (base64)
-    if (note.imageUrl.startsWith("data:")) {
-      return note.imageUrl;
-    }
-
-    // Blob URL
-    if (note.imageUrl.startsWith("blob:")) {
-      return note.imageUrl;
-    }
-
-    // Relative path - prepend API URL
-    const path = note.imageUrl.startsWith("/") ? note.imageUrl : `/${note.imageUrl}`;
-    return `${API_URL}${path}`;
   }
+
 
   onImageError(note: NoteWithUI): void {
     console.error("Image failed to load for note:", note.id, "URL:", note.imageUrl);
-    note.imageUrl = "";
-    note.localImageUrl = undefined;
+    // Don't clear the URL - just log the error
+    // The user might want to see a broken image indicator
     this.cd.detectChanges();
   }
 
   /* =========================
-     DRAG - OPTIMIZED
+     DRAG - FIXED VERSION
   ========================= */
 
   onNoteMouseDown(event: MouseEvent, note: NoteWithUI): void {
+    // Only respond to left mouse button
     if (event.button !== 0) return;
+    // Don't drag while editing
     if (this.editingNoteId === note.id) return;
 
     event.preventDefault();
     event.stopPropagation();
 
+    // Handle link mode clicks
     if (this.linkMode) {
       this.noteClickedForLink(note.id!);
       return;
     }
 
+    // Start drag
     this.draggingNote = note;
     note.isDragging = true;
     note.zIndex = ++this.maxZIndex;
     this.selectedNoteId = note.id!;
     this.hasDragged = false;
 
-    // Store start position for drag detection
+    // Store start position for drag threshold detection
     this.dragStartPos = { x: event.clientX, y: event.clientY };
 
-    // Calculate offset accounting for zoom and pan
+    // Calculate offset from mouse to note position (in board coordinates)
+    // We need to account for both zoom and pan
+    const boardRect = this.boardSurface?.nativeElement?.getBoundingClientRect() || { left: 0, top: 0 };
+
+    // Mouse position relative to board surface
+    const mouseXRelativeToBoard = event.clientX - boardRect.left;
+    const mouseYRelativeToBoard = event.clientY - boardRect.top;
+
+    // Convert to board coordinates (accounting for pan and zoom)
+    const mouseBoardX = (mouseXRelativeToBoard - this.panOffset.x) / this.zoom;
+    const mouseBoardY = (mouseYRelativeToBoard - this.panOffset.y) / this.zoom;
+
+    // Offset is difference between mouse position in board coords and note position
     this.dragOffset = {
-      x: event.clientX / this.zoom - (note.positionX || 0) - this.panOffset.x / this.zoom,
-      y: event.clientY / this.zoom - (note.positionY || 0) - this.panOffset.y / this.zoom,
+      x: mouseBoardX - (note.positionX || 0),
+      y: mouseBoardY - (note.positionY || 0),
     };
 
     this.cd.detectChanges();
@@ -803,9 +853,20 @@ export class BoardPage implements OnInit, AfterViewInit, OnDestroy {
 
     if (!this.hasDragged) return;
 
-    // Calculate new position accounting for zoom
-    const newX = event.clientX / this.zoom - this.dragOffset.x - this.panOffset.x / this.zoom;
-    const newY = event.clientY / this.zoom - this.dragOffset.y - this.panOffset.y / this.zoom;
+    // Get board surface rect
+    const boardRect = this.boardSurface?.nativeElement?.getBoundingClientRect() || { left: 0, top: 0 };
+
+    // Mouse position relative to board surface
+    const mouseXRelativeToBoard = event.clientX - boardRect.left;
+    const mouseYRelativeToBoard = event.clientY - boardRect.top;
+
+    // Convert to board coordinates (accounting for pan and zoom)
+    const mouseBoardX = (mouseXRelativeToBoard - this.panOffset.x) / this.zoom;
+    const mouseBoardY = (mouseYRelativeToBoard - this.panOffset.y) / this.zoom;
+
+    // Calculate new position
+    const newX = mouseBoardX - this.dragOffset.x;
+    const newY = mouseBoardY - this.dragOffset.y;
 
     // Clamp to board bounds
     this.draggingNote.positionX = Math.max(0, Math.min(this.boardWidth - 100, newX));
@@ -884,11 +945,7 @@ export class BoardPage implements OnInit, AfterViewInit, OnDestroy {
   }
 
   /* =========================
-     LINK PATH CALCULATIONS - FIXED
-
-     The key fix: SVG is now OUTSIDE the notes-wrapper transform,
-     so we need to calculate positions in SCREEN coordinates.
-     getPinX/Y now returns screen coordinates that account for zoom and pan.
+     LINK PATH CALCULATIONS
   ========================= */
 
   getNoteById(noteId: string): NoteWithUI | undefined {
@@ -982,15 +1039,27 @@ export class BoardPage implements OnInit, AfterViewInit, OnDestroy {
     return `translate(${this.panOffset.x}px, ${this.panOffset.y}px) scale(${this.zoom})`;
   }
 
-  getNoteStyle(note: NoteWithUI): { [key: string]: any } {
-    return {
-      "left.px": note.positionX,
-      "top.px": note.positionY,
-      "z-index": note.zIndex,
-      "transform": `rotate(${note.rotation || 0}deg)`,
-      "width.px": note.width,
-      "height.px": note.height || "auto",
+  // getNoteStyle handles height properly and uses string values
+  getNoteStyle(note: NoteWithUI): { [key: string]: string } {
+    const rotation = note.rotation || 0;
+    const posX = note.positionX ?? 0;
+    const posY = note.positionY ?? 0;
+    const width = note.width ?? this.getDefaultWidth(note.noteType || "STICKY");
+
+    const style: { [key: string]: string } = {
+      "left": `${posX}px`,
+      "top": `${posY}px`,
+      "z-index": `${note.zIndex ?? 10}`,
+      "transform": `rotate(${rotation}deg)`,
+      "width": `${width}px`,
     };
+
+    // Only set height if it's a valid number - otherwise let CSS handle auto height
+    if (note.height != null && typeof note.height === 'number' && note.height > 0) {
+      style["height"] = `${note.height}px`;
+    }
+
+    return style;
   }
 }
 

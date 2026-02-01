@@ -113,8 +113,7 @@
         </button>
       </div>
 
-      <!-- ===================== STRING CONNECTIONS - FIXED: OUTSIDE notes-wrapper ===================== -->
-      <!-- SVG is now at board-surface level, uses screen coordinates directly -->
+      <!-- ===================== STRING CONNECTIONS ===================== -->
       <svg class="links-svg"
            [style.width.px]="getSvgWidth()"
            [style.height.px]="getSvgHeight()"
@@ -125,25 +124,24 @@
           </filter>
         </defs>
 
-        <g *ngFor="let link of links; trackBy: trackByLinkId" class="link-group" style="pointer-events: auto;">
+        <g *ngFor="let link of links; trackBy: trackByLinkId" class="link-group">
           <!-- Invisible wider path for easier clicking -->
           <path [attr.d]="getLinkPath(link)"
                 fill="none"
                 stroke="transparent"
-                stroke-width="16"
-                style="cursor: pointer"
+                stroke-width="20"
+                class="link-click-target"
                 (click)="deleteLinkById(link.id!, $event)">
           </path>
 
           <!-- Visible string with curve -->
           <path [attr.d]="getLinkPath(link)"
-                class="link-string"
+                class="link-string-visible"
                 fill="none"
                 [attr.stroke]="getStringColor(link)"
                 stroke-width="2.5"
                 stroke-linecap="round"
-                filter="url(#string-shadow)"
-                style="pointer-events: none;">
+                filter="url(#string-shadow)">
           </path>
 
           <!-- Pin at start -->
@@ -175,8 +173,7 @@
                 [attr.y]="(getPinY(link.fromNoteId) + getPinY(link.toNoteId)) / 2 + 25"
                 class="link-delete-hint"
                 text-anchor="middle"
-                font-size="11"
-                style="pointer-events: none;">
+                font-size="11">
             Click to remove
           </text>
         </g>
@@ -225,7 +222,7 @@
                 {{ note.content || 'Double-click to edit...' }}
               </p>
 
-              <!-- Image Display - FIXED -->
+              <!-- Image Display -->
               <img *ngIf="getImageUrl(note)"
                    [src]="getImageUrl(note)"
                    alt="Note attachment"
@@ -303,7 +300,7 @@
                 </svg>
                 <span>Click to add photo</span>
               </div>
-              <!-- Photo Image - FIXED with proper src binding -->
+              <!-- Photo Image -->
               <img *ngIf="getImageUrl(note)"
                    [src]="getImageUrl(note)"
                    alt="Photo"
@@ -440,7 +437,7 @@
                 {{ note.content || 'Double-click to add content...' }}
               </p>
 
-              <!-- Clipping Image - FIXED -->
+              <!-- Clipping Image -->
               <img *ngIf="getImageUrl(note)"
                    [src]="getImageUrl(note)"
                    alt="Evidence"
@@ -557,7 +554,7 @@
                 {{ note.content || 'Double-click to add notes...' }}
               </p>
 
-              <!-- Index Card Image - FIXED -->
+              <!-- Index Card Image -->
               <img *ngIf="getImageUrl(note)"
                    [src]="getImageUrl(note)"
                    alt="Attachment"

@@ -103,8 +103,9 @@ public class NoteController {
     public NoteResponseDto uploadImage(
             @PathVariable String boardId,
             @PathVariable String noteId,
-            @Parameter(description = "Image file", required = true)
-            @RequestPart("file") MultipartFile file,
+            @RequestParam("file") MultipartFile file,
+//            @Parameter(description = "Image file", required = true)
+//            @RequestPart("file") MultipartFile file,
             Authentication authentication
     ) {
         if (file.isEmpty()) {

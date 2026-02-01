@@ -121,7 +121,7 @@ public class NoteService {
 
         noteRepository.delete(note);
     }
-
+    @Transactional
     public NoteResponseDto uploadImage(
             String boardId,
             String noteId,
@@ -148,6 +148,7 @@ public class NoteService {
 
             //  Persist URL
             note.setImageUrl(imageUrl);
+            note = noteRepository.save(note);
 
             //  Transactional → auto flush
             return noteMapper.toNoteResponse(note);

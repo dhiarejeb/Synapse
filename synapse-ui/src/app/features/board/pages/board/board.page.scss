@@ -374,18 +374,26 @@ $sticky-lime: #dcedc8;
 }
 
 .link-group {
-  .link-string {
-    pointer-events: auto;
+  // FIXED: The click target path needs pointer-events enabled
+  .link-click-target {
+    pointer-events: stroke;
     cursor: pointer;
-    transition: stroke-width 0.15s ease, opacity 0.15s ease;
 
     &:hover {
-      opacity: 0.7;
+      & ~ .link-string-visible {
+        opacity: 0.7;
+        stroke-width: 3.5;
+      }
 
       & ~ .link-delete-hint {
         opacity: 1;
       }
     }
+  }
+
+  .link-string-visible {
+    pointer-events: none;
+    transition: stroke-width 0.15s ease, opacity 0.15s ease;
   }
 
   .link-pin {
@@ -416,17 +424,22 @@ $sticky-lime: #dcedc8;
 .card {
   position: absolute;
   cursor: grab;
+  // CRITICAL FIX: Remove transition on position-related properties during normal state
+  // Only transition box-shadow for hover effects
   transition: box-shadow 0.15s ease;
-  will-change: transform, left, top, width, height;
+  will-change: transform;
 
   &:active,
   &.dragging {
     cursor: grabbing;
     box-shadow: 0 25px 60px rgba(0, 0, 0, 0.4) !important;
+    // CRITICAL: Disable ALL transitions during drag for smooth movement
+    transition: none !important;
   }
 
   &.resizing {
     cursor: se-resize;
+    transition: none !important;
   }
 
   &.selected {
