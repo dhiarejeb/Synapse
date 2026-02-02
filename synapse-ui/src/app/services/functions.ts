@@ -31,6 +31,8 @@ export type { DeleteImage$Params as DeleteImage$Params } from './fn/note-control
 export { deleteImage as deleteImage } from './fn/note-controller/delete-image';
 export type { ChangePassword$Params as ChangePassword$Params } from './fn/user/change-password';
 export { changePassword as changePassword } from './fn/user/change-password';
+export type { GetProfile$Params as GetProfile$Params } from './fn/user/get-profile';
+export { getProfile as getProfile } from './fn/user/get-profile';
 export type { DeleteAccount$Params as DeleteAccount$Params } from './fn/user/delete-account';
 export { deleteAccount as deleteAccount } from './fn/user/delete-account';
 export type { UpdateProfile$Params as UpdateProfile$Params } from './fn/user/update-profile';

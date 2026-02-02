@@ -1,47 +1,69 @@
-<div class="container mt-5" style="max-width: 400px;">
-  <h2 class="mb-4 text-center">Login to Synapse</h2>
+<div class="login-page">
+  <div class="login-card">
 
-  <form [formGroup]="loginForm" (ngSubmit)="submit()">
+    <!-- LEFT SIDE : INTRO -->
+    <div class="login-intro">
+      <h1>Synapse</h1>
 
-    <!-- Email -->
-    <div class="mb-3">
-      <label class="form-label">Email</label>
-      <input
-        type="email"
-        class="form-control"
-        formControlName="email"
-        placeholder="you@example.com"
-      />
-      <small class="text-danger" *ngIf="loginForm.controls['email'].touched && loginForm.controls['email'].invalid">
-        Valid email is required
-      </small>
+      <p class="intro-main">
+        Synapse is a focused workspace designed to help you connect ideas,
+        structure thoughts, and find clarity.
+      </p>
+
+      <p class="intro-secondary">
+        Built for thinkers who value intention and mindful productivity.
+      </p>
     </div>
 
-    <!-- Password -->
-    <div class="mb-3">
-      <label class="form-label">Password</label>
-      <input
-        type="password"
-        class="form-control"
-        formControlName="password"
-      />
-      <small class="text-danger" *ngIf="loginForm.controls['password'].touched && loginForm.controls['password'].invalid">
-        Minimum 6 characters
-      </small>
+    <!-- RIGHT SIDE : FORM -->
+    <div class="login-form">
+      <h2 class="login-title">Login</h2>
+
+      <form [formGroup]="loginForm" (ngSubmit)="submit()">
+
+        <!-- Email -->
+        <div class="mb-3">
+          <label class="form-label">Email</label>
+          <input
+            type="email"
+            class="form-control"
+            formControlName="email"
+            placeholder="you@example.com"
+          />
+          <small class="error"
+                 *ngIf="loginForm.controls['email'].touched && loginForm.controls['email'].invalid">
+            Valid email is required
+          </small>
+        </div>
+
+        <!-- Password -->
+        <div class="mb-3">
+          <label class="form-label">Password</label>
+          <input
+            type="password"
+            class="form-control"
+            formControlName="password"
+          />
+          <small class="error"
+                 *ngIf="loginForm.controls['password'].touched && loginForm.controls['password'].invalid">
+            Minimum 6 characters
+          </small>
+        </div>
+
+        <!-- Submit -->
+        <button
+          type="submit"
+          class="btn-login"
+          [disabled]="loginForm.invalid">
+          Login
+        </button>
+
+      </form>
+
+      <div class="signup-link">
+        <a routerLink="/signup">Create account</a>
+      </div>
     </div>
 
-    <!-- Submit -->
-    <button
-      type="submit"
-      class="btn btn-dark w-100"
-      [disabled]="loginForm.invalid"
-    >
-      Login
-    </button>
-
-  </form>
-
-  <div class="text-center mt-3">
-    <a routerLink="/signup">Create account</a>
   </div>
 </div>

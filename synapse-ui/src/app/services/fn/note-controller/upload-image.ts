@@ -13,10 +13,6 @@ export interface UploadImage$Params {
   boardId: string;
   noteId: string;
       body?: {
-
-/**
- * Image file
- */
 'file': Blob;
 }
 }

@@ -106,4 +106,8 @@ export class DashboardPage implements OnInit {
   trackById(index: number, board: BoardResponseDto) {
     return board.id;
   }
+
+  goToUser(): void {
+    this.router.navigate(['/user']);
+  }
 }

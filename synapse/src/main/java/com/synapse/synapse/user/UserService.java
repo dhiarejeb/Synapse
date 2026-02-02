@@ -15,4 +15,6 @@ public interface UserService extends UserDetailsService {
     void reactivateAccount(String userId);
 
     void deleteAccount(String userId);
+
+    UserProfileResponse getProfile(String userId);
 }

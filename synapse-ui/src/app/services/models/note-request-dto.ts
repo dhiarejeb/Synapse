@@ -5,17 +5,8 @@ export interface NoteRequestDto {
   color?: string;
   content?: string;
   height?: number;
-  noteType?: NoteType;
+  noteType?: string;
   positionX?: number;
   positionY?: number;
   width?: number;
 }
-
-export type NoteType =
-  | "STICKY"
-  | "PHOTO"
-  | "DOCUMENT"
-  | "CLIPPING"
-  | "LABEL"
-  | "INDEX_CARD"
-  | "EVIDENCE_TAG";

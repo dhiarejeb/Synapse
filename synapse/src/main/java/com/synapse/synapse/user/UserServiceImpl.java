@@ -5,6 +5,7 @@ import com.synapse.synapse.exception.BusinessException;
 import com.synapse.synapse.exception.ErrorCode;
 import com.synapse.synapse.user.request.ChangePasswordRequest;
 import com.synapse.synapse.user.request.ProfileUpdateRequest;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -20,6 +21,17 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final UserMapper userMapper;
+
+
+
+    @Override
+    public UserProfileResponse getProfile(String userId) {
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new EntityNotFoundException("User not found"));
+
+        return userMapper.toProfileResponse(user);
+    }
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {

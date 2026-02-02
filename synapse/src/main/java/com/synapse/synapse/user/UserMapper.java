@@ -36,4 +36,14 @@ public class UserMapper {
                 .build();
     }
 
+    public UserProfileResponse toProfileResponse(User user) {
+        return new UserProfileResponse(
+                user.getId(),
+                user.getFirstName(),
+                user.getLastName(),
+                user.getEmail(),
+                user.isEmailVerified()
+        );
+    }
+
 }

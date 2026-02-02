@@ -15,3 +15,4 @@ export type { ProfileUpdateRequest } from './models/profile-update-request';
 export type { RefreshRequest } from './models/refresh-request';
 export type { RegistrationRequest } from './models/registration-request';
 export type { UpdateLinkRequest } from './models/update-link-request';
+export type { UserProfileResponse } from './models/user-profile-response';

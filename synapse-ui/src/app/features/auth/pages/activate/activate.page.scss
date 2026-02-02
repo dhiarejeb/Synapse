@@ -1,6 +1,77 @@
-.container {
-  background: #fff;
-  padding: 2rem;
+/* FULL viewport center – no Bootstrap interference */
+.activation-page {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: #ffffff;
+}
+
+/* Card */
+.activation-card {
+  width: 100%;
+  max-width: 420px;
+  padding: 3rem;
+  background: #ffffff;
+  border-radius: 14px;
+  box-shadow: 0 12px 35px rgba(0,0,0,0.08);
+  text-align: center;
+}
+
+/* Title */
+.activation-title {
+  color: #1565c0;
+  font-weight: 500;
+  margin-bottom: 1rem;
+}
+
+/* Hint */
+.activation-hint {
+  color: #444;
+  font-size: 0.95rem;
+  margin-bottom: 2.5rem;
+}
+
+/* Input */
+.activation-input {
+  width: 220px;
+  margin: 0 auto 1rem;
+  display: block;
+  text-align: center;
+  font-size: 1.8rem;
+  letter-spacing: 0.45rem;
+  padding: 0.75rem 1rem;
+  border-radius: 10px;
+  border: 1px solid #bbdefb;
+  transition: all 0.2s ease;
+  background: #ffffff;
+}
+
+.activation-input:focus {
+  outline: none;
+  border-color: #1565c0;
+  box-shadow: 0 0 0 3px rgba(21, 101, 192, 0.25);
+}
+
+/* Button */
+.activation-btn {
+  width: 100%;
+  margin-top: 1.5rem;
+  padding: 0.75rem;
+  background: #1565c0;
+  color: #ffffff;
+  border: none;
   border-radius: 8px;
-  box-shadow: 0 0 20px rgba(0,0,0,.08);
+  font-weight: 500;
+}
+
+.activation-btn:disabled {
+  opacity: 0.6;
+}
+
+/* Error */
+.error {
+  display: block;
+  font-size: 0.8rem;
+  color: #d32f2f;
 }

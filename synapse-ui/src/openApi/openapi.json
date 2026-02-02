@@ -506,7 +506,6 @@
                 "properties": {
                   "file": {
                     "type": "string",
-                    "description": "Image file",
                     "format": "binary"
                   }
                 }
@@ -735,6 +734,24 @@
       }
     },
     "/api/v1/users/me": {
+      "get": {
+        "tags": [
+          "User"
+        ],
+        "operationId": "getProfile",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserProfileResponse"
+                }
+              }
+            }
+          }
+        }
+      },
       "delete": {
         "tags": [
           "User"
@@ -1178,6 +1195,26 @@
           },
           "toNoteId": {
             "type": "string"
+          }
+        }
+      },
+      "UserProfileResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "firstName": {
+            "type": "string"
+          },
+          "lastName": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "emailVerified": {
+            "type": "boolean"
           }
         }
       }
