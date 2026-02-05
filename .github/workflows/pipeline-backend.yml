@@ -34,6 +34,7 @@ jobs:
             key: ${{ runner.os }}-m2-${{hashFiles('**/pom.xml')}}
             restore-keys: ${{ runner.os }}-m2
         - name: Make mvnw executable
+          working-directory: synapse
           run: chmod +x mvnw
 
 
