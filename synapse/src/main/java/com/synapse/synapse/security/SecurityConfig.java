@@ -49,7 +49,7 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(cors -> cors.configurationSource(request -> {
                     var corsConfig = new org.springframework.web.cors.CorsConfiguration();
-                    corsConfig.setAllowedOrigins(java.util.List.of("http://localhost:4200")); // your Angular app
+                    corsConfig.setAllowedOrigins(java.util.List.of("http://localhost:4200","http://76.13.142.3")); // your Angular app
                     corsConfig.setAllowedMethods(java.util.List.of("GET", "POST", "PUT", "DELETE","PATCH","OPTIONS"));
                     corsConfig.setAllowedHeaders(java.util.List.of("*"));
                     corsConfig.setAllowCredentials(true);
