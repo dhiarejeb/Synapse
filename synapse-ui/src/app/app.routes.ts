@@ -2,6 +2,7 @@ import { Routes } from '@angular/router';
 import {UserPageComponent} from './features/User/pages/user-page-component/user-page-component';
 import {authGuard} from './core/guards/auth.guard';
 
+
 export const routes: Routes = [
   {
     path: '',

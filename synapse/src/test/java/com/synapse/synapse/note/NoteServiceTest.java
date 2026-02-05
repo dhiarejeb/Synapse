@@ -4,6 +4,7 @@ import com.synapse.synapse.board.Board;
 import com.synapse.synapse.board.BoardRepository;
 import com.synapse.synapse.exception.BusinessException;
 import com.synapse.synapse.exception.ErrorCode;
+import com.synapse.synapse.link.LinkRepository;
 import com.synapse.synapse.user.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -54,6 +55,7 @@ class NoteServiceTest {
     private Note testNote;
     private NoteRequestDto noteRequestDto;
     private NoteResponseDto noteResponseDto;
+    private LinkRepository  linkRepository;
 
     @BeforeEach
     void setUp() {
@@ -71,35 +73,35 @@ class NoteServiceTest {
                 .id("board-123")
                 .name("My Board")
                 .owner(testUser)
-                .archived(false)
+
                 .build();
 
         // Existing note entity
         this.testNote = Note.builder()
                 .id("note-123")
-                .title("Test Note")
+
                 .content("Note content")
                 .color("#FFFFFF")
-                .pinned(false)
+
                 .board(testBoard)
                 .author(testUser)
                 .build();
 
         // Request DTO (used for create/update)
         this.noteRequestDto = NoteRequestDto.builder()
-                .title("New Note")
+
                 .content("New content")
                 .color("#000000")
-                .pinned(false)
+
                 .build();
 
         // Expected response DTO
         this.noteResponseDto = NoteResponseDto.builder()
                 .id("note-123")
-                .title("Test Note")
+
                 .content("Note content")
                 .color("#FFFFFF")
-                .pinned(false)
+
                 .createdDate(LocalDateTime.now())
                 .build();
     }
@@ -307,7 +309,7 @@ class NoteServiceTest {
         void shouldPatchNote() {
             // Given
             NoteRequestDto patchDto = NoteRequestDto.builder()
-                    .title("Updated title")
+
                     .build();
 
             when(boardRepository.findByIdAndOwnerId("board-123", testUser.getId()))

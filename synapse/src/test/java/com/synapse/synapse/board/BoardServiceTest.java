@@ -65,8 +65,8 @@ class BoardServiceTest {
                 .id("board-123")
                 .name("My Board")
                 .description("Board description")
-                .color("#FFFFFF")
-                .archived(false)
+
+
                 .owner(testUser)
                 .build();
 
@@ -74,7 +74,7 @@ class BoardServiceTest {
         this.boardRequestDto = BoardRequestDto.builder()
                 .name("New Board")
                 .description("New description")
-                .color("#000000")
+
                 .build();
 
         // Expected response DTO
@@ -82,8 +82,8 @@ class BoardServiceTest {
                 .id("board-123")
                 .name("My Board")
                 .description("Board description")
-                .color("#FFFFFF")
-                .archived(false)
+
+
                 .createdDate(LocalDateTime.now())
                 .build();
     }
@@ -297,7 +297,7 @@ class BoardServiceTest {
             boardService.delete("board-123", testUser);
 
             // Then
-            assertTrue(testBoard.isArchived());
+
 
             verify(boardRepository).findByIdAndOwnerId("board-123", testUser.getId());
             verifyNoMoreInteractions(boardRepository);

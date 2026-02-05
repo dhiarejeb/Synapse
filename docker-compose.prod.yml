@@ -1,0 +1,45 @@
+services:
+  synapse-api:
+    image: ${DOCKER_USERNAME}/synapse:latest
+    container_name: synapse-api
+    restart: unless-stopped
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL}
+      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      AWS_REGION: ${AWS_REGION}
+      AWS_S3_BUCKET: ${AWS_S3_BUCKET}
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+
+  synapse-ui:
+    image: ${DOCKER_USERNAME}/synapse-ui:latest
+    container_name: synapse-ui
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    depends_on:
+      - synapse-api
+
+  db:
+    image: postgres:17.5
+    container_name: synapse_DB
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${PG_DB_NAME}
+      POSTGRES_USER: ${PG_DB_USERNAME}
+      POSTGRES_PASSWORD: ${PG_DB_PASSWORD}
+    volumes:
+      - postgres:/var/lib/postgresql/data
+
+volumes:
+  postgres:
+
+networks:
+  default:
+    name: synapse_network
