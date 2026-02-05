@@ -11,7 +11,7 @@ import { delete$ } from '../../../../services/fn/board-controller/delete';
 import { create } from '../../../../services/fn/board-controller/create';
 import { patch} from '../../../../services/fn/board-controller/patch';
 import {StrictHttpResponse} from '../../../../services/strict-http-response';
-import {environment} from '../../../../../environments/environments';
+import {environment} from '../../../../../environments/environment';
 
 @Component({
   selector: 'app-dashboard-page',

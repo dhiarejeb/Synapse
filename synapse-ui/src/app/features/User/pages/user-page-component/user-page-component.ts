@@ -8,7 +8,7 @@ import {ProfileUpdateRequest} from '../../../../services/models/profile-update-r
 import {ChangePasswordRequest} from '../../../../services/models/change-password-request';
 import {CommonModule} from '@angular/common';
 import {RouterModule} from '@angular/router';
-import {environment} from '../../../../../environments/environments';
+import {environment} from '../../../../../environments/environment';
 
 
 @Component({

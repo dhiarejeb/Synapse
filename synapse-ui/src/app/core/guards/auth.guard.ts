@@ -4,6 +4,7 @@ import { HttpClient } from '@angular/common/http';
 import { from, of, lastValueFrom } from 'rxjs';
 import { switchMap, catchError } from 'rxjs/operators';
 import { refresh } from '../../services/fn/authentication/refresh';
+import {environment} from '../../../environments/environment';
 
 export const authGuard: CanActivateFn = (): Promise<boolean> => {
   const router = inject(Router);
@@ -21,7 +22,7 @@ export const authGuard: CanActivateFn = (): Promise<boolean> => {
     return Promise.resolve(true);
   } else if (refreshToken) {
     // Try refreshing
-    const refresh$ = from(refresh(http, 'http://localhost:8080', { body: { refreshToken } })).pipe(
+    const refresh$ = from(refresh(http, environment.apiUrl, { body: { refreshToken } })).pipe(
       switchMap(res => {
         const newToken = res?.body?.access_token;
         if (newToken) {

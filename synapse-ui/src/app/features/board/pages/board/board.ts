@@ -28,7 +28,7 @@ import { CommonModule } from "@angular/common";
 import { DragDropModule } from "@angular/cdk/drag-drop";
 import { uploadImage } from "../../../../services/fn/note-controller/upload-image";
 import { FormsModule } from "@angular/forms";
-import {environment} from '../../../../../environments/environments';
+import {environment} from '../../../../../environments/environment';
 
 const API_URL = environment.apiUrl;
 

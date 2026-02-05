@@ -7,7 +7,7 @@ import { HttpClient } from '@angular/common/http';
 import { catchError, of } from 'rxjs';
 import {ActivationRequest} from '../../../../services/models/activation-request';
 import {activateAccount} from '../../../../services/fn/authentication/activate-account';
-import {environment} from '../../../../../environments/environments';
+import {environment} from '../../../../../environments/environment';
 
 @Component({
   selector: 'app-activate-page',

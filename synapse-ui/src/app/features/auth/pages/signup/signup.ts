@@ -6,7 +6,7 @@ import { HttpClient } from '@angular/common/http';
 import { catchError, of } from 'rxjs';
 import {RegistrationRequest} from '../../../../services/models/registration-request';
 import {register} from '../../../../services/fn/authentication/register';
-import {environment} from '../../../../../environments/environments';
+import {environment} from '../../../../../environments/environment';
 
 
 @Component({
