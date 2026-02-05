@@ -68,7 +68,10 @@ jobs:
       - name: Extract project version
         id: extract_version
         run: |
-          echo "VERSION=$(./mvnw -q -Dexec.executable='echo' -Dexec.args='${project.version}' --non-recursive exec:exec)" >> $GITHUB_OUTPUT 
+          echo "VERSION=$(./mvnw -q -Dexec.executable='echo' -Dexec.args='${project.version}' --non-recursive exec:exec)" >> $GITHUB_OUTPUT
+      - name: Make mvnw executable
+        working-directory: synapse
+        run: chmod +x mvnw
 
       - name: Build application
         working-directory: synapse
