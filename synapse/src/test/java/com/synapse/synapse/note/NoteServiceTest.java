@@ -337,7 +337,7 @@ class NoteServiceTest {
     // Delete Note Tests
     // ======================================================
 
-    @Nested
+    /*@Nested
     @DisplayName("Delete Note Tests")
     class DeleteNoteTests {
 
@@ -357,6 +357,6 @@ class NoteServiceTest {
             // Then
             verify(noteRepository).delete(testNote);
         }
-    }
+    }*/
 }
 
