@@ -1,10 +1,10 @@
 spring:
   application:
     name: synapse
-  config:
-    import: optional:file:.env[.properties]
+#  config:
+#    import: optional:file:.env[.properties]
   profiles:
-      active: local
+      active: prod
 
 
 

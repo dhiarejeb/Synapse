@@ -18,9 +18,9 @@ spring:
         format_sql: true
 
   aws:
-    region: eu-north-1
+    region: ${AWS_REGION}
     s3:
-      bucket: amzn-s3-synapse
+      bucket: ${AWS_S3_BUCKET}
   servlet:
     multipart:
       max-file-size: 10MB
