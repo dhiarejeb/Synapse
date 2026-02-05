@@ -71,6 +71,7 @@ jobs:
           echo "VERSION=$(./mvnw -q -Dexec.executable='echo' -Dexec.args='${project.version}' --non-recursive exec:exec)" >> $GITHUB_OUTPUT 
 
       - name: Build application
+        working-directory: synapse
         run: ./mvnw clean package -DskipTests
 
       - name: Set up Docker Buildx
