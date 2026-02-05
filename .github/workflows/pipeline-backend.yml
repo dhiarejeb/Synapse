@@ -67,6 +67,7 @@ jobs:
 
       - name: Extract project version
         id: extract_version
+        working-directory: synapse
         run: |
           echo "VERSION=$(./mvnw -q -Dexec.executable='echo' -Dexec.args='${project.version}' --non-recursive exec:exec)" >> $GITHUB_OUTPUT
       - name: Make mvnw executable
@@ -93,7 +94,7 @@ jobs:
           push: true
           tags: |
             ${{ secrets.DOCKER_USERNAME }}/${{ env.APP_NAME }}:latest
-            ${{ secrets.DOCKER_USERNAME }}/${{ env.APP_NAME }}:${{ steps.extract_version.outputs.VERSION }}
+            ${{ secrets.DOCKER_USERNAME }}/${{ env.APP_NAME }}:${{ steps.extract_version.outputs.VERSION || '0.0.1' }}
           cache-from: type=gha
           cache-to: type=gha,mode=mas
           build-args: |
