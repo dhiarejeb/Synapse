@@ -3,6 +3,7 @@ import { Observable, throwError, from } from 'rxjs';
 import { catchError, switchMap } from 'rxjs/operators';
 import { refresh } from '../../services/fn/authentication/refresh'; // adjust path
 import { inject } from '@angular/core';
+import {environment} from '../../../environments/environment';
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const http = inject(HttpClient); // inject HttpClient for refresh calls
@@ -22,7 +23,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
         if (refreshToken) {
           // Call refresh endpoint
           return from(
-            refresh(http, 'http://localhost:8080', { body: { refreshToken } }).toPromise()
+            refresh(http, environment.apiUrl, { body: { refreshToken } }).toPromise()
           ).pipe(
             switchMap(res => {
               // ✅ Check if res and res.body exist
