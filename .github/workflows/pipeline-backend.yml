@@ -35,6 +35,7 @@ jobs:
             restore-keys: ${{ runner.os }}-m2
 
         - name: Running Unit Tests
+          working-directory: synapse
           run: |
             ./mvnw clean test
 
