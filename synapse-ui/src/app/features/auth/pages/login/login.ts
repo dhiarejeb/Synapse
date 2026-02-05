@@ -8,6 +8,7 @@ import {catchError, of, map, mergeMap, from} from 'rxjs';
 import {AuthenticationRequest} from '../../../../services/models/authentication-request';
 import {login} from '../../../../services/fn/authentication/login';
 import {AuthenticationResponse} from '../../../../services/models/authentication-response';
+import {environment} from '../../../../../environments/environments';
 
 @Component({
   selector: 'app-login-page',
@@ -21,7 +22,7 @@ export class LoginPage {
   loginForm!: FormGroup;
   loading = false;
   error: string | null = null;
-  private rootUrl = 'http://localhost:8080'; // your backend URL
+  private rootUrl = environment.apiUrl;
 
   constructor(private fb: FormBuilder, private router: Router, private http: HttpClient) {
     this.loginForm = this.fb.nonNullable.group({

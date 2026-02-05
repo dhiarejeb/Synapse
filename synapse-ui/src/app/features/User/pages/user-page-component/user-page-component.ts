@@ -8,6 +8,7 @@ import {ProfileUpdateRequest} from '../../../../services/models/profile-update-r
 import {ChangePasswordRequest} from '../../../../services/models/change-password-request';
 import {CommonModule} from '@angular/common';
 import {RouterModule} from '@angular/router';
+import {environment} from '../../../../../environments/environments';
 
 
 @Component({
@@ -19,7 +20,7 @@ import {RouterModule} from '@angular/router';
 })
 export class UserPageComponent implements OnInit {
 
-  private API_URL = 'http://localhost:8080';
+  private API_URL = environment.apiUrl;
 
   profileForm!: FormGroup;
   passwordForm!: FormGroup;

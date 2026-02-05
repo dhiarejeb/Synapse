@@ -7,6 +7,7 @@ import { HttpClient } from '@angular/common/http';
 import { catchError, of } from 'rxjs';
 import {ActivationRequest} from '../../../../services/models/activation-request';
 import {activateAccount} from '../../../../services/fn/authentication/activate-account';
+import {environment} from '../../../../../environments/environments';
 
 @Component({
   selector: 'app-activate-page',
@@ -19,7 +20,7 @@ export class ActivatePage implements OnInit {
   activateForm!: FormGroup;
   loading = false;
   error: string | null = null;
-  private rootUrl = 'http://localhost:8080';
+  private rootUrl = environment.apiUrl;
 
   constructor(
     private fb: FormBuilder,

@@ -4,7 +4,8 @@
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
-    "build": "ng build",
+    "build": "ng build --configuration production",
+    "build:ssr": "ng build && ng run synapse-ui:server",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "serve:ssr:synapse-ui": "node dist/synapse-ui/server/server.mjs",

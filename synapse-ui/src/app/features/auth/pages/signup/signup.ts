@@ -6,6 +6,7 @@ import { HttpClient } from '@angular/common/http';
 import { catchError, of } from 'rxjs';
 import {RegistrationRequest} from '../../../../services/models/registration-request';
 import {register} from '../../../../services/fn/authentication/register';
+import {environment} from '../../../../../environments/environments';
 
 
 @Component({
@@ -20,7 +21,7 @@ export class SignupPage {
   loading = false;
   error: string | null = null;
 
-  private rootUrl = 'http://localhost:8080'; // your backend base URL
+  private rootUrl = environment.apiUrl;
 
   constructor(private fb: FormBuilder, private router: Router, private http: HttpClient) {
     this.signupForm = this.fb.nonNullable.group({

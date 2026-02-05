@@ -28,8 +28,9 @@ import { CommonModule } from "@angular/common";
 import { DragDropModule } from "@angular/cdk/drag-drop";
 import { uploadImage } from "../../../../services/fn/note-controller/upload-image";
 import { FormsModule } from "@angular/forms";
+import {environment} from '../../../../../environments/environments';
 
-const API_URL = "http://localhost:8080";
+const API_URL = environment.apiUrl;
 
 // Note types - matching backend enum
 type NoteType = "STICKY" | "PHOTO" | "DOCUMENT" | "CLIPPING" | "LABEL" | "INDEX_CARD" | "EVIDENCE_TAG";

@@ -11,6 +11,7 @@ import { delete$ } from '../../../../services/fn/board-controller/delete';
 import { create } from '../../../../services/fn/board-controller/create';
 import { patch} from '../../../../services/fn/board-controller/patch';
 import {StrictHttpResponse} from '../../../../services/strict-http-response';
+import {environment} from '../../../../../environments/environments';
 
 @Component({
   selector: 'app-dashboard-page',
@@ -27,7 +28,7 @@ export class DashboardPage implements OnInit {
   form: BoardRequestDto = { name: '', description: '' };
   editingBoardId: string | null = null;
 
-  private apiUrl = 'http://localhost:8080'; // replace with your backend
+  private apiUrl = environment.apiUrl;
 
   constructor(private http: HttpClient, private router: Router,private cd: ChangeDetectorRef) {}
 
