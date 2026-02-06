@@ -1,6 +1,8 @@
 package com.synapse.synapse.security;
 
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.security.KeyFactory;
 import java.security.PrivateKey;
 import java.security.PublicKey;
@@ -12,7 +14,29 @@ public class KeyUtils {
 
     private KeyUtils() {}
 
-    public static PrivateKey loadPrivateKey(final String pemPath) throws Exception {
+    public static PrivateKey loadPrivateKey(String pemPath) throws Exception {
+        String key = Files.readString(Path.of(pemPath))
+                .replace("-----BEGIN PRIVATE KEY-----", "")
+                .replace("-----END PRIVATE KEY-----", "")
+                .replaceAll("\\s", "");
+
+        byte[] decoded = Base64.getDecoder().decode(key);
+        return KeyFactory.getInstance("RSA")
+                .generatePrivate(new PKCS8EncodedKeySpec(decoded));
+    }
+
+    public static PublicKey loadPublicKey(String pemPath) throws Exception {
+        String key = Files.readString(Path.of(pemPath))
+                .replace("-----BEGIN PUBLIC KEY-----", "")
+                .replace("-----END PUBLIC KEY-----", "")
+                .replaceAll("\\s", "");
+
+        byte[] decoded = Base64.getDecoder().decode(key);
+        return KeyFactory.getInstance("RSA")
+                .generatePublic(new X509EncodedKeySpec(decoded));
+    }
+
+    /*public static PrivateKey loadPrivateKey(final String pemPath) throws Exception {
         final String key = readKeyFromResource(pemPath).replace("-----BEGIN PRIVATE KEY-----", "")
                 .replace("-----END PRIVATE KEY-----", "")
                 .replaceAll("\\s", "");
@@ -32,12 +56,12 @@ public class KeyUtils {
         return KeyFactory.getInstance("RSA").generatePublic(keySpec);
     }
 
-    private static String readKeyFromResource(final String path) throws Exception {
+    *//*private static String readKeyFromResource(final String path) throws Exception {
         try (final InputStream is = KeyUtils.class.getClassLoader().getResourceAsStream(path)) {
             if (is == null) {
                 throw new IllegalArgumentException("Key not found: " + path);
             }
             return new String(is.readAllBytes());
-        }
+        }*/
     }
-}
+

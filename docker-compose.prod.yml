@@ -15,7 +15,7 @@ services:
       AWS_REGION: ${AWS_REGION}
       AWS_S3_BUCKET: ${AWS_S3_BUCKET}
     volumes:
-      - /opt/synapse/keys:/opt/synapse/keys:ro  # ← mount host keys into container
+      - /opt/synapse/keys:/opt/synapse/keys:ro
     ports:
       - "8080:8080"
     depends_on:
