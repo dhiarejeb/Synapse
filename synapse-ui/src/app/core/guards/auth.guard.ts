@@ -13,9 +13,11 @@ export const authGuard: CanActivateFn = () => {
     return false;
   }
 
-  const token = localStorage.getItem('access_token');
+  const accessToken = localStorage.getItem('access_token');
+  const refreshToken = localStorage.getItem('refresh_token');
 
-  if (token) {
+  // Allow navigation if we have ANY token
+  if (accessToken || refreshToken) {
     return true;
   }
 
