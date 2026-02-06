@@ -25,3 +25,10 @@ spring:
     multipart:
       max-file-size: 10MB
       max-request-size: 10MB
+
+
+app:
+  security:
+    jwt:
+      private-key-path: ${JWT_PRIVATE_KEY_PATH}                 # e.g., /opt/synapse/keys/private_key.pem
+      public-key-path: ${JWT_PUBLIC_KEY_PATH}                   # e.g., /opt/synapse/keys/public_key.pem

@@ -19,8 +19,7 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder
 public class Note extends BaseEntity {
 
-//    @Column(name = "TITLE", nullable = false)
-//    private String title;
+
 
     @Column(name = "CONTENT", columnDefinition = "TEXT")
     private String content;
@@ -44,8 +43,7 @@ public class Note extends BaseEntity {
     private Double width;
     private Double height;
 
-//    @Column(name = "IS_PINNED")
-//    private boolean pinned = false;
+
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "BOARD_ID", nullable = false)

@@ -75,9 +75,10 @@
             class="form-control"
             formControlName="password"
           />
+
           <small class="error"
                  *ngIf="signupForm.controls['password'].touched && signupForm.controls['password'].invalid">
-            Minimum 6 characters
+            At least 8 characters, including uppercase, lowercase, number, and special character.
           </small>
         </div>
 

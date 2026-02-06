@@ -34,7 +34,7 @@ public class Board extends BaseEntity {
     @JoinColumn(name = "OWNER_ID", nullable = false)
     private User owner;
 
-    // 🔥 NOTES
+    //  NOTES
     @OneToMany(
             mappedBy = "board",
             cascade = CascadeType.ALL,
@@ -42,7 +42,7 @@ public class Board extends BaseEntity {
     )
     private List<Note> notes = new ArrayList<>();
 
-    // 🔥 LINKS
+    //  LINKS
     @OneToMany(
             mappedBy = "board",
             cascade = CascadeType.ALL,

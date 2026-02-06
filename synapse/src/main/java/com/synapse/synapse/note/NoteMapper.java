@@ -53,22 +53,7 @@ public class NoteMapper {
 
 
 
-    /*public NoteResponseDto toNoteResponse(Note note) {
-        return NoteResponseDto.builder()
-                .id(note.getId())
-                //.title(note.getTitle())
-                .content(note.getContent())
-                .imageUrl(note.getImageUrl())
-                .color(note.getColor())
-                .positionX(note.getPositionX())
-                .positionY(note.getPositionY())
-                .noteType(note.getNoteType().toApiValue())
-                .width(note.getWidth())
-                .height(note.getHeight())
-                //.pinned(note.isPinned())
-                .createdDate(note.getCreatedDate())
-                .build();
-    }*/
+
     public NoteResponseDto toNoteResponse(Note note) {
         String presignedUrl = null;
 

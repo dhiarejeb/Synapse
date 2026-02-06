@@ -34,9 +34,7 @@ public class BoardMapper {
             board.setDescription(dto.getDescription());
         }
 
-//        if (dto.getColor() != null) {
-//            board.setColor(dto.getColor());
-//        }
+
     }
 
 

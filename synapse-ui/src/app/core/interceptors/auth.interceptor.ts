@@ -1,57 +1,65 @@
 import { HttpInterceptorFn, HttpRequest, HttpHandler, HttpEvent, HttpErrorResponse, HttpClient } from '@angular/common/http';
 import { Observable, throwError, from } from 'rxjs';
 import { catchError, switchMap } from 'rxjs/operators';
-import { refresh } from '../../services/fn/authentication/refresh'; // adjust path
+import { refresh } from '../../services/fn/authentication/refresh';
 import { inject } from '@angular/core';
 import {environment} from '../../../environments/environment';
+import {Router} from '@angular/router';
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
-  const http = inject(HttpClient); // inject HttpClient for refresh calls
-  const token = (typeof window !== 'undefined') ? localStorage.getItem('access_token') : null;
+  const router = inject(Router);
+  const http = inject(HttpClient);
 
+  // Do not intercept refresh requests
+  if (req.url.includes('/auth/refresh')) {
+    return next(req);
+  }
 
-  // Attach token if available
-  const cloned = token
+  const token = localStorage.getItem('access_token');
+
+  const authReq = token
     ? req.clone({ setHeaders: { Authorization: `Bearer ${token}` } })
     : req;
 
-  return next(cloned).pipe(
-    catchError(err => {
-      // If 401 Unauthorized and we have a refresh token
-      if (err instanceof HttpErrorResponse && err.status === 401) {
+  return next(authReq).pipe(
+    catchError((err: HttpErrorResponse) => {
+      if (err.status === 401) {
         const refreshToken = localStorage.getItem('refresh_token');
-        if (refreshToken) {
-          // Call refresh endpoint
-          return from(
-            refresh(http, environment.apiUrl, { body: { refreshToken } }).toPromise()
-          ).pipe(
-            switchMap(res => {
-              // ✅ Check if res and res.body exist
-              if (res && res.body && res.body.access_token) {
-                const newToken = res.body.access_token;
 
-                // Save new tokens
-                localStorage.setItem('access_token', newToken);
-                if (res.body.refresh_token) {
-                  localStorage.setItem('refresh_token', res.body.refresh_token);
-                }
-
-                // Retry original request with new token
-                const retryReq = req.clone({
-                  setHeaders: { Authorization: `Bearer ${newToken}` }
-                });
-                return next(retryReq);
-              }
-
-              // Refresh failed → clear tokens
-              localStorage.removeItem('access_token');
-              localStorage.removeItem('refresh_token');
-              return throwError(() => err);
-            })
-          );
+        if (!refreshToken) {
+          localStorage.clear();
+          router.navigate(['/login']);
+          return throwError(() => err);
         }
+
+        return from(
+          refresh(http, environment.apiUrl, { body: { refreshToken } })
+        ).pipe(
+          switchMap(res => {
+            const newToken = res?.body?.access_token;
+
+            if (!newToken) {
+              localStorage.clear();
+              router.navigate(['/login']);
+              return throwError(() => err);
+            }
+
+            localStorage.setItem('access_token', newToken);
+            if (res.body?.refresh_token) {
+              localStorage.setItem('refresh_token', res.body.refresh_token);
+            }
+
+            return next(
+              req.clone({
+                setHeaders: { Authorization: `Bearer ${newToken}` }
+              })
+            );
+          })
+        );
       }
+
       return throwError(() => err);
     })
   );
 };
+

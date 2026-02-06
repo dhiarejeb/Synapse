@@ -41,7 +41,7 @@
         <label>New Password</label>
         <input type="password" formControlName="newPassword" />
         <small class="error" *ngIf="passwordForm.get('newPassword')?.touched && passwordForm.get('newPassword')?.invalid">
-          Minimum 6 characters
+          At least 8 characters, including uppercase, lowercase, number, and special character.
         </small>
       </div>
 

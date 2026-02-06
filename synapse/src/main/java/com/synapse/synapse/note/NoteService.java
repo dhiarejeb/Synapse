@@ -147,7 +147,7 @@ public class NoteService {
                 .orElseThrow(() -> new BusinessException(ErrorCode.NOTE_NOT_FOUND));
 
         try {
-            // 🔥 delete old image if exists
+            //  delete old image if exists
             s3Service.deleteFile(note.getImageUrl());
             //  Upload to S3
             String imageUrl = s3Service.uploadFile(file, note.getId());
@@ -179,10 +179,10 @@ public class NoteService {
                 )
                 .orElseThrow(() -> new BusinessException(ErrorCode.NOTE_NOT_FOUND));
 
-        // 🔥 delete image from S3
+        //  delete image from S3
         s3Service.deleteFile(note.getImageUrl());
 
-        // 🧼 detach image from note
+        //  detach image from note
         note.setImageUrl(null);
     }
 

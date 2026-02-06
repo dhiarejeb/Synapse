@@ -33,11 +33,11 @@ export class DashboardPage implements OnInit {
   constructor(private http: HttpClient, private router: Router,private cd: ChangeDetectorRef) {}
 
   ngOnInit(): void {
-    if (typeof window !== 'undefined' && localStorage.getItem('access_token')) {
+    //if (typeof window !== 'undefined' && localStorage.getItem('access_token')) {
       this.fetchBoards();
-    } else {
-      console.warn('No token in localStorage yet; skipping fetchBoards');
-    }
+    //} else {
+     // console.warn('No token in localStorage yet; skipping fetchBoards');
+    //}
   }
 
   fetchBoards() {

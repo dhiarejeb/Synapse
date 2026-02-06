@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 public class NoteResponseDto {
 
     private String id;
-    //private String title;
+
     private String content;
     private String imageUrl;
     private String color;
@@ -21,7 +21,7 @@ public class NoteResponseDto {
     private String noteType;
     private Double width;
     private Double height;
-    //private Boolean pinned;
+
     private LocalDateTime createdDate;
 }
 

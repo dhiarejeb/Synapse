@@ -11,7 +11,7 @@ import lombok.*;
 public class NoteRequestDto {
 
 
-   // private String title;
+
 
     private String content;
 
@@ -27,6 +27,6 @@ public class NoteRequestDto {
     private Double width;
     private Double height;
 
-    //private Boolean pinned;
+
 }
 

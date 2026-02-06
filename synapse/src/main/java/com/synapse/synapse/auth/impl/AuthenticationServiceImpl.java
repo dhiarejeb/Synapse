@@ -76,7 +76,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         User user = userMapper.toUser(request);
         user.setRoles(List.of(userRole));
 
-        // 🔐 IMPORTANT FLAGS
+        // IMPORTANT FLAGS
         user.setEnabled(false);
         user.setEmailVerified(false);
         user.setLocked(false);
