@@ -4,6 +4,8 @@ services:
     container_name: synapse-api
     restart: unless-stopped
     environment:
+      JWT_PRIVATE_KEY_PATH: /opt/synapse/keys/private_key.pem
+      JWT_PUBLIC_KEY_PATH: /opt/synapse/keys/public_key.pem
       SPRING_PROFILES_ACTIVE: prod
       SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL}
       SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
