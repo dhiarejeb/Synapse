@@ -4,6 +4,7 @@ package com.synapse.synapse.security;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
+import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -16,8 +17,8 @@ import java.util.Map;
 public class JwtService {
 
     public static final String TOKEN_TYPE = "token_type";
-    private final PrivateKey privateKey;
-    private final PublicKey publicKey;
+    private PrivateKey privateKey;
+    private PublicKey publicKey;
     @Value("${app.security.jwt.access-token-expiration}")
     private long accessTokenExpiration;
     @Value("${app.security.jwt.refresh-token-expiration}")
@@ -29,7 +30,8 @@ public class JwtService {
     @Value("${app.security.jwt.public-key-path}")
     private String publicKeyPath;
 
-    public JwtService() throws Exception {
+    @PostConstruct
+    public void init() throws Exception {
         this.privateKey = KeyUtils.loadPrivateKey(privateKeyPath);
         this.publicKey = KeyUtils.loadPublicKey(publicKeyPath);
     }
