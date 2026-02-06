@@ -14,6 +14,8 @@ services:
       AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
       AWS_REGION: ${AWS_REGION}
       AWS_S3_BUCKET: ${AWS_S3_BUCKET}
+    volumes:
+      - /opt/synapse/keys:/opt/synapse/keys:ro  # ← mount host keys into container
     ports:
       - "8080:8080"
     depends_on:
