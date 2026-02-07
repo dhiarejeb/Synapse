@@ -6,6 +6,3 @@
 # Datasource local storage ignored files
 /dataSources/
 /dataSources.local.xml
-# Keys (local only)
-keys/local-only/
-keys/*.pem

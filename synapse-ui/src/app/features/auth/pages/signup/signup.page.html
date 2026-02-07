@@ -69,18 +69,33 @@
 
         <!-- Password -->
         <div class="mb-3">
-          <label class="form-label">Password</label>
+          <label class="form-label" for="password">
+            Password:
+          </label>
           <input
             type="password"
+            id="password"
             class="form-control"
             formControlName="password"
           />
 
-          <small class="error"
-                 *ngIf="signupForm.controls['password'].touched && signupForm.controls['password'].invalid">
-            At least 8 characters, including uppercase, lowercase, number, and special character.
+          <!-- Always visible rules -->
+          <small class="text-muted d-block mt-1">
+            Must be at least 8 characters and include:
+            <ul class="mb-0">
+              <li>Uppercase letter</li>
+              <li>Lowercase letter</li>
+              <li>Number</li>
+              <li>Special character</li>
+            </ul>
+          </small>
+
+          <!-- Error message only when invalid -->
+          <small class="text-danger" *ngIf="signupForm.controls['password'].touched && signupForm.controls['password'].invalid">
+            Password does not meet the requirements.
           </small>
         </div>
+
 
         <!-- Confirm Password -->
         <div class="mb-3">

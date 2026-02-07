@@ -1,6 +1,5 @@
-import { Component, signal } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
-import {AuthBootstrapService} from './core/services/AuthBootstrapService';
+import {Component, signal} from '@angular/core';
+import {RouterOutlet} from '@angular/router';
 
 @Component({
   selector: 'app-root',
@@ -11,9 +10,7 @@ import {AuthBootstrapService} from './core/services/AuthBootstrapService';
 })
 export class App {
   protected readonly title = signal('synapse-ui');
-  constructor(private authBootstrap: AuthBootstrapService) {
-    if (typeof window !== 'undefined') {
-      this.authBootstrap.init(); // runs only in browser
-    }
-  }
+
+
+
 }

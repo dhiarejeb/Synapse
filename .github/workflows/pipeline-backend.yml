@@ -118,6 +118,12 @@ jobs:
             cat > .env << EOF
             DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }}
             APP_NAME=${{ env.APP_NAME }}
+            # JWT keys
+            JWT_PRIVATE_KEY_PATH=/opt/synapse/keys/private_key.pem
+            JWT_PUBLIC_KEY_PATH=/opt/synapse/keys/public_key.pem
+            PG_DB_NAME=${{ secrets.PG_DB_NAME }}
+            PG_DB_USERNAME=${{ secrets.PG_DB_USERNAME }}
+            PG_DB_PASSWORD=${{ secrets.PG_DB_PASSWORD }}
             # Spring Boot expects THESE
             SPRING_DATASOURCE_URL=jdbc:postgresql://synapse_DB:5432/${{ secrets.PG_DB_NAME }}
             SPRING_DATASOURCE_USERNAME=${{ secrets.PG_DB_USERNAME }}
