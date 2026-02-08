@@ -25,6 +25,7 @@ spring:
     multipart:
       max-file-size: 10MB
       max-request-size: 10MB
+
   mail:
     email: ${MAIL_USERNAME}
     appPassword: ${MAIL_PASSWORD}

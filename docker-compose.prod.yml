@@ -23,6 +23,7 @@ services:
     depends_on:
       - db
 
+
   synapse-ui:
     image: ${DOCKER_USERNAME}/synapse-ui:latest
     container_name: synapse-ui
