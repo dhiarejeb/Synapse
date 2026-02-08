@@ -124,6 +124,9 @@ jobs:
             PG_DB_NAME=${{ secrets.PG_DB_NAME }}
             PG_DB_USERNAME=${{ secrets.PG_DB_USERNAME }}
             PG_DB_PASSWORD=${{ secrets.PG_DB_PASSWORD }}
+            # Mail (NEW)
+            MAIL_USERNAME=${{ secrets.MAIL_USERNAME }}
+            MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}
             # Spring Boot expects THESE
             SPRING_DATASOURCE_URL=jdbc:postgresql://synapse_DB:5432/${{ secrets.PG_DB_NAME }}
             SPRING_DATASOURCE_USERNAME=${{ secrets.PG_DB_USERNAME }}

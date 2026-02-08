@@ -1,5 +1,6 @@
 package com.synapse.synapse.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -9,14 +10,19 @@ import java.util.Properties;
 @Configuration
 public class MailConfig {
 
+    @Value("${spring.mail.email}")
+    String email;
+    @Value("${spring.mail.appPassword}")
+    String appPassword;
+
     @Bean
     public JavaMailSender getJavaMailSender() {
         JavaMailSenderImpl mailSender = new JavaMailSenderImpl();
         mailSender.setHost("smtp.gmail.com");
         mailSender.setPort(587);
 
-        mailSender.setUsername("meddhiarejeb22@gmail.com");
-        mailSender.setPassword("hmkd mgsv rhib oqkz"); // Use an app password for Gmail
+        mailSender.setUsername(email);
+        mailSender.setPassword(appPassword); // Use an app password for Gmail
 
         Properties props = mailSender.getJavaMailProperties();
         props.put("mail.transport.protocol", "smtp");
